@@ -1,0 +1,640 @@
+Basics of Parallel Processing in R, Python, and Matlab
+==============================================================
+Threaded linear algebra and parallel for loops in a shared memory (single machine) context
+--------------
+
+Chris Paciorek, Department of Statistics, UC Berkeley
+
+```{r setup, include=FALSE}
+library(knitr)
+library(stringr)
+read_chunk('parallel-basics.R')
+read_chunk('parallel-basics.py')
+read_chunk('parallel-basics.m')
+```
+
+# 0) This Tutorial
+
+This tutorial covers basic strategies for using parallel processing in R, Python, and Matlab on single machine in which multiple processors (cores) share memory. 
+
+In the future, a screencast of the material may accompany this document.
+
+We'll use a virtual machine developed here at Berkeley, [the Berkeley Common Environment (BCE)](http://bce.berkeley.edu). BCE is a virtual Linux machine - basically it is a Linux computer that you can run within your own computer, regardless of whether you are using Windows, Mac, or Linux. This provides a common environment so that things behave the same for all of us. Assuming you have multiple cores on your physical machine, you can enable use of multiple cores within BCE by going to `Settings -> System -> Processor` and changing the number of processors to more than 1. (You may also want to increase the memory allocated to the VM.) Note that if you are using a version of BCE before BCE-fall-2015 you may need to install some additional packages using the *add-parallel-tools.sh* script available at http://bce.berkeley.edu/downloads.html. However, you may also be able to work through this material on your own computer provided you are able install the software used here. 
+
+This tutorial assumes you have a working knowledge of either R, Python, or Matlab. 
+
+Materials for this tutorial, including the R markdown file and associated code files that were used to create this document are available on Github at https://github.com/berkeley-scf/tutorial-parallel-basics.  You can download the files by doing a git clone from a terminal window on a UNIX-like machine, as follows:
+```{r, clone, eval=FALSE}
+git clone https://github.com/berkeley-scf/tutorial-parallel-basics
+```
+
+To create this HTML document, simply compile the corresponding R Markdown file in R as follows (the following will work from within BCE after cloning the repository as above).
+```{r, build-html, eval=FALSE}
+Rscript -e "library(knitr); knit2html('parallel-basics.Rmd')"
+```
+This tutorial by Christopher Paciorek is licensed under a Creative Commons Attribution 3.0 Unported License.
+
+
+# 1) Types of parallel processing
+
+There are two basic flavors of parallel processing (leaving aside
+GPUs): distributed memory and shared memory. With shared memory, multiple
+processors (which I'll call cores) share the same memory. With distributed
+memory, you have multiple nodes, each with their own memory. You can
+think of each node as a separate computer connected by a fast network. 
+
+## 1.1) Some useful terminology:
+
+  - *cores*: We'll use this term to mean the different processing
+units available on a single node.
+  - *nodes*: We'll use this term to mean the different computers,
+each with their own distinct memory, that make up a cluster or supercomputer.
+  - *processes*: computational tasks executing on a machine; multiple
+processes may be executing at once. A given program may start up multiple
+processes at once. Ideally we have no more processes than cores on
+a node.
+  - *threads*: multiple paths of execution within a single process;
+the OS sees the threads as a single process, but one can think of
+them as 'lightweight' processes. Ideally when considering the processes
+and their threads, we would have no more processes and threads combined
+than cores on a node.
+  - *forking*: child processes are spawned that are identical to
+the parent, but with different process IDs and their own memory.
+  - *sockets*: some of R's parallel functionality involves creating
+new R processes (e.g., starting processes via *Rscript*) and
+communicating with them via a communication technology called sockets.
+
+## 1.2) Shared memory
+
+For shared memory parallelism, each core is accessing the same memory
+so there is no need to pass information (in the form of messages)
+between different machines. But in some programming contexts one needs
+to be careful that activity on different cores doesn't mistakenly
+overwrite places in memory that are used by other cores.
+
+We'll cover two types of  shared memory parallelism approaches:
+  - threaded linear algebra 
+  - multicore functionality 
+
+### Threading
+
+Threads are multiple paths of execution within a single process. If you are monitoring CPU
+usage (such as with *top* in BCE) and watching a job that is executing threaded code, you'll
+see the process using more than 100% of CPU. When this occurs, the
+process is using multiple cores, although it appears as a single process
+rather than as multiple processes. 
+
+## 1.3) Distributed memory
+
+Parallel programming for distributed memory parallelism requires passing
+messages between the different nodes. The standard protocol for doing
+this is MPI, of which there are various versions, including *openMPI*.
+
+The R package *Rmpi* implements MPI in R. The *pbd* packages for R also implement MPI as well as distributed linear algebra (linear algebra calculations across nodes). 
+
+Python has a package *mpi4py* that allows use of MPI within Python.
+
+Matlab has its own system for distributed computation, called the Distributed Computing Server (DCS), requiring additional licensing above the standard Matlab installation. 
+
+This tutorial will not cover distributed memory parallelization, though a future tutorial may. 
+
+## 1.4) Other type of parallel processing
+
+We won't cover either of these in this material.
+
+### GPUs
+
+GPUs (Graphics Processing Units) are processing units originally designed
+for rendering graphics on a computer quickly. This is done by having
+a large number of simple processing units for massively parallel calculation.
+The idea of general purpose GPU (GPGPU) computing is to exploit this
+capability for general computation. 
+
+In spring 2014, I gave a [workshop on using GPUs](http://statistics.berkeley.edu/computing/gpu).
+
+### Spark and Hadoop
+
+Spark and Hadoop are systems for implementing computations in a distributed
+memory environment, using the MapReduce approach. In fall 2014, I gave a [workshop on using Spark](http://statistics.berkeley.edu/computing/gpu).
+
+# 2) Threading, particularly for linear algebra
+
+# 2.1) What is the BLAS?
+
+The BLAS is the library of basic linear algebra operations (written in
+Fortran or C). A fast BLAS can greatly speed up linear algebra
+relative to the default BLAS on a machine. Some fast BLAS libraries
+are 
+ - Intel's *MKL*; may be available for educational use for free
+ - *OpenBLAS* (formerly *GotoBLAS*); open source and free
+ - AMD's *ACML*; free
+ - *vecLib* for Macs; provided with your Mac
+
+
+In addition to being fast when used on a single core, all of these BLAS libraries are
+threaded - if your computer has multiple cores and there are free
+resources, your linear algebra will use multiple cores, provided your
+program is linked against the threaded BLAS installed on your machine and provided
+OMP_NUM_THREADS is not set to one. (Macs make use of
+VECLIB_MAXIMUM_THREADS rather than OMP_NUM_THREADS.)
+
+On BCE, both R and Python are linked against OpenBLAS as of BCE-fall-2015. (Note: for BCE-2015-spring, you need to run the add-on script *add-parallel-tools.sh* (see Section 0) to install OpenBLAS and link R against it; however  this will not link Python against OpenBLAS.)
+
+
+## 2.2) Using threading 
+
+### 2.2.1) Using threading in R
+
+Threading in R is limited to linear algebra, provided R is linked against a threaded BLAS.
+
+Here's some code that illustrates
+the speed of using a threaded BLAS:
+
+```{r, R-linalg, eval=FALSE}
+```
+
+Here the elapsed time indicates that using four threads gave us a two times (2x) speedup in terms of real time, while the user time indicates that the threaded calculation took a bit more total processing time (combining time across all processors) because of the overhead of using multiple threads. 
+
+Note that the code also illustrates use of an R package that can control the number of threads from within R.
+
+### 2.2.2) Python
+
+As with R, threading in Python is limited to linear algebra, provided Python is linked against a threaded BLAS.  Python has something
+called the [Global Interpreter Lock](https://wiki.python.org/moin/GlobalInterpreterLock)
+that interferes with threading in Python (but not in threaded linear algebra packages called by Python). 
+
+Here's some linear algebra in  Python that will use threading if *numpy* is linked against a threaded BLAS, though I don't compare the timing for different numbers of threads here. 
+
+```{r, py-linalg, engine='python', eval=FALSE}
+```
+
+### 2.2.3) Matlab
+
+Many Matlab functions are automatically threaded (not just linear
+algebra), so you don't need to do anything special in your code to
+take advantage of this. 
+So if you're running Matlab and monitoring CPU usage (e.g., using
+*top* on Linux or OS X), you may see a process using more than 100% of CPU. However
+worker tasks within a *parfor* (see Section 3) use only a single thread. 
+Matlab uses MKL for linear algebra. 
+
+## 2.3) Fixing the number of threads (cores used)
+
+In general, threaded code will
+detect the number of cores available on a machine and make use of
+them. However, you can also explicitly control the number of threads
+available to a process. 
+
+### 2.3.1) R, Python, C, etc.
+
+For most threaded code (that based on the openMP protocol), the number
+of threads can be set by setting the OMP_NUM_THREADS environment
+variable (VECLIB_MAXIMUM_THREADS on a Mac). E.g., to set it for four
+threads in bash:
+
+```export OMP_NUM_THREADS=4```
+
+Do this before starting your R or Python session or before running your compiled executable. 
+
+Alternatively, you can set OMP_NUM_THREADS as you invoke your job, e.g., here with R:
+
+```OMP_NUM_THREADS=4 R CMD BATCH --no-save job.R job.out```
+
+
+### 2.3.2) Matlab
+
+Matlab is an exception. Threading in Matlab can be controlled
+in two ways. From within your Matlab code you can set the number of
+threads, e.g., to four in this case:
+
+```feature('numThreads', 4)```
+
+To use only a single thread, you can use 1 instead of 4 above, or
+you can start Matlab with the *singleCompThread* flag:
+
+```matlab -singleCompThread ...```
+
+
+## 2.4) Important warnings about use of threaded BLAS
+
+### 2.4.1) Speed and threaded BLAS
+
+In many cases, using multiple threads for linear algebra operations
+will outperform using a single thread, but there is no guarantee that
+this will be the case, in particular for operations with small matrices
+and vectors. Testing with openBLAS suggests that sometimes a job may
+take more time when using multiple threads; this seems to be less
+likely with ACML. This presumably occurs because openBLAS is not doing
+a good job in detecting when the overhead of threading outweights
+the gains from distributing the computations. You can compare speeds
+by setting OMP_NUM_THREADS to different values. In cases where threaded
+linear algebra is slower than unthreaded, you would want to set OMP_NUM_THREADS
+to 1. 
+
+More generally, if you are using the parallel tools in Section 3 to 
+simultaneously carry out many independent calculations (tasks), it is
+likely to be more effective to use the fixed number of cores available on your machine
+ so as to split up the tasks, one per core, without taking advantage of the threaded BLAS (i.e., restricting
+each process to a single thread). 
+
+
+
+### 2.4.2) Conflict between openBLAS and some parallel functionality in R
+
+There are conflicts between forking in R and threaded BLAS that in
+some cases affect 
+- *foreach* (when using the *parallel* (and *multicore*) backends),
+- *mclapply*, and
+- *parLapply* and *parSapply* (only if *cluster* is set up with forking -- not the default).
+
+The result is that if linear algebra is used within your parallel
+code, R hangs. This affects (under somewhat different circumstances)
+both ACML and openBLAS.
+
+To address this, before running an R job that does linear algebra,
+you can set OMP_NUM_THREADS to 1 to prevent the BLAS from doing
+threaded calculations. Alternatively, you can use MPI as the parallel
+backend (via *doMPI* in place of *doParallel*).
+You may also be able to convert your code to use *par{L,S}apply*
+with the default PSOCK type and avoid *foreach* entirely.
+
+
+### 2.4.3) Conflict between threaded BLAS and R profiling
+
+There is also a conflict between threaded BLAS and R profiling, so
+if you are using *Rprof*, you may need to set OMP_NUM_THREADS
+to one. This has definitely occurred with openBLAS; I'm not sure about
+other threaded BLAS libraries.
+
+**Caution**: Note that I don't pay any attention to possible
+danger in generating random numbers in separate processes in this Section. More on
+this issue in Section 4.
+
+
+## 2.5) Using an optimized BLAS on your own machine(s)
+
+To use an optimized BLAS with R, talk to your systems administrator, see [Section A.3 of the R Installation and Administration Manual](https://cran.r-project.org/manuals.html), or see [these instructions to use *vecLib* BLAS from Apple's Accelerate framework on your own Mac](http://statistics.berkeley.edu/computing/blas).
+
+It's also possible to use an optimized BLAS with Python's numpy and scipy packages, on either Linux or using the Mac's *vecLib* BLAS. Details will depend on how you install Python, numpy, and scipy. 
+
+ 
+# 3) Basic parallelized loops/maps/apply
+
+All of the functionality discussed here applies *only* if the iterations/loops of your calculations can be done completely separately and do not depend on one another. This scenario is called an *embarrassingly parallel* computation.  So coding up the evolution of a time series or a Markov chain is not possible using these tools. However, bootstrapping, random forests, simulation studies, cross-validation
+and many other statistical methods can be handled in this way.
+
+
+
+## 3.1) Parallel loops and *apply* functions in R
+
+### 3.1.1) Parallel for loops with *foreach*
+
+A simple way to exploit parallelism in R  is to use the *foreach* package to do a for loop in parallel.
+
+The *foreach* package provides a *foreach* command that
+allows you to do this easily. *foreach* can use a variety of
+parallel ``back-ends''. For our purposes, the main one is use of the *parallel* package to use shared
+memory cores. When using *parallel* as the
+back-end, you should see multiple processes (as many as you registered;
+ideally each at 100%) when you  monitor CPU usage. The multiple processes
+are created by forking or using sockets. *foreach* can also use *Rmpi* to access cores in
+a distributed memory setting, but that is beyond the scope of this document.
+
+```{r, foreach}
+```
+(Note that the printed statements from `cat` are not showing up in the creation of this document but should show if you run the code.)
+
+ Note that *foreach*
+also provides functionality for collecting and managing
+the results to avoid some of the bookkeeping
+you would need to do if writing your own standard for loop.
+The result of *foreach* will generally be a list, unless 
+we request the results be combined in different way, as we do here using `.combine = c`.
+
+You can debug by running serially using *%do%* rather than
+*%dopar%*. Note that you may need to load packages within the
+*foreach* construct to ensure a package is available to all of
+the calculations.
+
+
+### 3.1.2) Parallel apply functionality
+
+The *parallel* package has the ability to parallelize the various
+*apply* functions (apply, lapply, sapply, etc.). It's a bit hard to find the [vignette for the parallel package](http://stat.ethz.ch/R-manual/R-devel/library/parallel/doc/parallel.pdf)
+because parallel is not listed as one of
+the contributed packages on CRAN (it gets installed with R by default).
+
+We'll consider parallel lapply and sapply. These rely on having started a cluster using *cluster*, which  uses the PSOCK mechanism as in the SNOW package - starting new jobs via *Rscript* 
+and communicating via a technology called sockets.
+
+```{r, parallel_lsApply, eval=TRUE}
+```
+
+Here the miniscule user time is probably because the time spent in the worker processes is not counted at the level of the overall master process that dispatches the workers.
+
+For help with these functions and additional related parallelization functions (including *parApply*), see `help(clusterApply)`.
+
+*mclapply* is an alternative that uses forking to start up the worker processes.
+
+```{r, mclapply, eval=TRUE}
+```
+
+Note that some R packages can directly interact with the parallelization
+packages to work with multiple cores. E.g., the *boot* package
+can make use of the *parallel* package directly. 
+
+
+## 3.2) Parallel looping in Python
+
+There are a number of approaches to parallelization in Python. We'll
+cover two of the basic approaches here. 
+
+### 3.2.1) *pp* package
+
+Here we create a server object and submit jobs to the server object,
+which manages the farming out of the tasks. Note that this will run
+interactively in iPython or as a script from UNIX, but will not run
+interactively in the base Python interpreter (for reasons that are
+unclear to me). Also note that while we are illustrating this as basically
+another parallelized for loop, the individual jobs can be whatever
+calculations you want, so the *taskFun* function could change from
+job to job.
+
+```{r, python-pp, engine='python', eval=FALSE}
+```
+
+```
+[(0, 0.00030280243091597474), (1, -8.5722825540149767e-05), (2, 0.00013566614947237407), (3, 0.00061310818505479474), (4, -0.0004702706491795272), (5, 0.00024515486966970537), (6, -0.00017472300458822845), (7, -0.00025050095623507584), (8, -0.00033399772183492841), (9, -0.00049137138871004158), (10, 0.00029251318047107422), (11, 1.1956375483643322e-05), (12, -0.00010810414999124078), (13, 0.00015533121727716678), (14, -0.00092143784872822018), (15, -7.4020047531168942e-05), (16, -0.00027179897723462343), (17, -0.00020500359099047446), (18, 5.0102720605584639e-05), (19, -0.00031948846032527046), (20, -5.4961570167677311e-05), (21, -0.00057477384497516828), (22, 0.00035571929916218195), (23, 0.0003172760600221845), (24, -3.9757431343687736e-05), (25, 0.00037903275195759294), (26, -0.00010435497860874407), (27, 0.0001701626336006962), (28, -0.00069358450543517865), (29, 0.00067886194920371693), (30, -0.00051310981441539557), (31, -3.0022955955111069e-05), (32, -0.00063590672702952002), (33, -0.00031966078315322541), (34, -0.00015649509164027703), (35, 0.00028376009875884391), (36, 0.00018534703816611961), (37, -0.00021821998172858934), (38, 8.0842394421238762e-05), (39, -0.00014637870897851111)]
+```
+
+### 3.2.2) *multiprocessing* package
+
+Here we'll use the *Pool.map* method
+to iterate in a parallelized fashion, as the Python analog to *foreach*
+or *parfor*. *Pool.map* only supports having a single
+argument to the function being used, so we'll use list of tuples,
+and pass each tuple as the argument. 
+
+```{r, python-mp, engine='python', eval=TRUE}
+```
+
+
+## 3.3) Basic shared memory parallel programming in Matlab
+
+
+To run a loop in parallel in Matlab, you can use the *parfor*
+construction.  Before running the parfor you
+need to start up a set of workers using *parpool*. Matlab will use only  one thread
+per worker. 
+Here is some demo code:
+
+```{r, matlab-parfor, engine='bash', eval=FALSE}
+```
+
+Matlab has a default limit on the number of workers in a pool, but you can modify your Matlab settings  as follows to increase that limit (in this case to allow up to 32 workers). It should work to run the following code once in a Matlab session, which will modify the settings for future Matlab sessions.
+
+```
+cl = parcluster('local');
+cl.NumWorkers = 32;
+saveProfile(cl);
+```
+
+# 4) Parallelization strategies
+
+The following are some basic principles/suggestions for how to parallelize
+your computation.
+
+Should I use one machine/node or many machines/nodes?
+
+ - If you can do your computation on the cores of a single node using
+shared memory, that will be faster than using the same number of cores
+(or even somewhat more cores) across multiple nodes. Similarly, jobs
+with a lot of data/high memory requirements that one might think of
+as requiring Spark or Hadoop may in some cases be much faster if you can find
+a single machine with a lot of memory.
+ - That said, if you would run out of memory on a single node, then you'll
+need to use distributed memory.
+
+What level or dimension should I parallelize over?
+
+ - If you have nested loops, you generally only want to parallelize at
+one level of the code. That said, there may be cases in which it is
+helpful to do both. Keep in mind whether your linear algebra is being
+threaded. Often you will want to parallelize over a loop and not use
+threaded linear algebra.
+ - Often it makes sense to parallelize the outer loop when you have nested
+loops.
+ - You generally want to parallelize in such a way that your code is
+load-balanced and does not involve too much communication. 
+
+How do I balance communication overhead with keeping my cores busy?
+
+ - If you have very few tasks, particularly if the tasks take different
+amounts of time, often some processors will be idle and your code
+poorly load-balanced.
+ - If you have very many tasks and each one takes little time, the communication
+overhead of starting and stopping the tasks will reduce efficiency.
+
+Should multiple tasks be pre-assigned to a process (i.e., a worker) (sometimes called *prescheduling*) or should tasks
+be assigned dynamically as previous tasks finish? 
+
+ - Basically if you have many tasks that each take similar time, you
+want to preschedule the tasks to reduce communication. If you have few tasks
+or tasks with highly variable completion times, you don't want to
+preschedule, to improve load-balancing.
+ - For R in particular, some of R's parallel functions allow you to say whether the 
+tasks should be prescheduled. E.g., the *mc.preschedule* argument in *mclapply* and
+the *.scheduling* argument in *parLapply*.
+
+# 5) Random number generation (RNG) in parallel 
+
+The key thing when thinking about random numbers in a parallel context
+is that you want to avoid having the same 'random' numbers occur on
+multiple processes. On a computer, random numbers are not actually
+random but are generated as a sequence of pseudo-random numbers designed
+to mimic true random numbers. The sequence is finite (but very long)
+and eventually repeats itself. When one sets a seed, one is choosing
+a position in that sequence to start from. Subsequent random numbers
+are based on that subsequence. All random numbers can be generated
+from one or more random uniform numbers, so we can just think about
+a sequence of values between 0 and 1. 
+
+The worst thing that could happen is that one sets things up in such
+a way that every process is using the same sequence of random numbers.
+This could happen if you mistakenly set the same seed in each process,
+e.g., using *set.seed(mySeed)* in R on every process.
+
+The naive approach is to use a different seed for each process. E.g.,
+if your processes are numbered `id = 1,2,...,p`  with a variable *id* that is  unique
+to a process, setting the seed to be the value of *id* on each process. This is likely
+not to cause problems, but raises the danger that two (or more sequences)
+might overlap. For an algorithm with dependence on the full sequence,
+such as an MCMC, this probably won't cause big problems (though you
+likely wouldn't know if it did), but for something like simple simulation
+studies, some of your 'independent' samples could be exact replicates
+of a sample on another process. Given the period length of the default
+generators in R, Matlab and Python, this is actually quite unlikely,
+but it is a bit sloppy.
+
+One approach to avoid the problem is to do all your RNG on one process
+and distribute the random deviates, but this can be infeasible with
+many random numbers.
+
+More generally to avoid this problem, the key is to use an algorithm
+that ensures sequences that do not overlap.
+
+
+## 5.1) Ensuring separate sequences in R
+
+In R, the  *rlecuyer* package deals with this (*rsprng* used to but it is no longer on CRAN).
+The L'Ecuyer algorithm has a period of $2^{191}$, which it divides
+into subsequences of length $2^{127}$. 
+
+
+### 5.1.1) With the parallel package
+
+Here's how you initialize independent sequences on different processes
+when using the *parallel* package's parallel apply functionality
+(illustrated here with *parSapply*).
+
+```{r, RNG-apply, eval=TRUE}
+```
+
+
+If you want to explicitly move from stream to stream, you can use
+*nextRNGStream*. For example:
+
+```{r, RNGstream, eval=FALSE}
+```
+
+When using *mclapply*, you can use the *mc.set.seed* argument
+as follows (note that *mc.set.seed* is TRUE by default, so you
+should get different seeds for the different processes by default),
+but one needs to invoke `RNGkind("L'Ecuyer-CMRG")`
+to get independent streams via the L'Ecuyer algorithm.
+
+```{r, RNG-mclapply, eval=TRUE}
+```
+
+The documentation for *mcparallel* gives more information about
+reproducibility based on *mc.set.seed*.
+
+
+### 5.1.2) With foreach
+
+
+#### Getting independent streams
+
+One question is whether *foreach* deals with RNG correctly. This
+is not documented, but the developers (Revolution Analytics) are well
+aware of RNG issues. Digging into the underlying code reveals that
+the *doParallel* backend invokes *mclapply*
+and sets *mc.set.seed* to TRUE by default. This suggests that
+the discussion above r.e. *mclapply* holds for *foreach*
+as well, so you should do `RNGkind("L'Ecuyer-CMRG")`
+before your foreach call. 
+
+#### Ensuring reproducibility
+
+While using *foreach* as just described should ensure that the
+streams on each worker are are distinct, it does not ensure reproducibility
+because task chunks may be assigned to workers differently in different
+runs and the substreams are specific to workers, not to tasks. 
+
+For other backends, such as *doParallel*, there is a package
+called *doRNG* that ensures that *foreach* loops are reproducible.
+Here's how you do it:
+
+```{r, RNG-doRNG}
+```
+
+You can ignore the warnings about closing unused connections printed out above.
+
+## 5.2) RNG in Python
+
+Python uses the Mersenne-Twister generator. If you're using the RNG
+in *numpy/scipy*, you can set the seed using `numpy.random.seed` or `scipy.random.seed`.
+The advice I'm seeing online in various Python forums is to just set
+separate seeds, so it appears the Python is a bit behind R and Matlab here.
+ There is a function *random.jumpahead* that
+allows you to move the seed ahead as if a given number of random numbers
+had been generated, but this function will not be in Python 3.x, so
+I won't suggest using it. 
+
+
+## 5.3) RNG in Matlab
+
+Matlab also uses the Mersenne-Twister. We can set the seed as: `rng(seed)`,
+with seed being a non-negative integer. 
+
+Happily, like R, we can set up independent streams, using either of
+the Combined Multiple Recursive ('mrg32k3a') and the Multiplicative
+Lagged Fibonacci ('mlfg6331_64') generators. Here's an example, where
+we create the second of the 5 streams, as if we were using this code
+in the second of our parallel processes. The `'Seed',0` part
+is not actually needed as that is the default.
+
+```
+thisStream = 2;
+totalNumStreams = 5;
+seed = 0;
+cmrg1 = RandStream.create('mrg32k3a', 'NumStreams', totalNumStreams, 
+   'StreamIndices', thisStream, 'Seed', seed); 
+RandStream.setGlobalStream(cmrg1);
+randn(5, 1)
+```
+
+
+
+
+# Appendix: Other shared memory parallelization functionality in R and Matlab
+
+
+
+## Other parallel functionality in R
+
+One can use *mcparallel* in the *parallel* package to
+send different chunks of code to different processes. Here we would
+need to manage the number of tasks so that we don't have more tasks
+than available cores.
+
+```{r, mcparallel, eval=TRUE}
+```
+
+Note that *mcparallel* also allows the use of the *mc.set.seed*
+argument as with *mclapply*.
+
+Note that on the cluster, one should create only as many parallel
+blocks of code as were requested when submitting the job.
+
+Now let's consider parallel evaluation of a vectorized function. This
+will often only be worthwhile on very long vectors and for computationally
+intensive calculations. (The *Matern* call here is more time-consuming
+than *exp*).
+
+```{r, pvec, eval=TRUE}
+```
+
+## Manually parallelizing individual tasks in Matlab
+
+In addition to using *parfor* in Matlab, you can also explicitly program parallelization, managing the individual
+parallelized tasks. Here is some template code for doing this. We'll
+submit our jobs to a pool of workers so that we have control over
+how many jobs are running at once. Note that here I submit 6 jobs
+that call the same function, but the different jobs could call different
+functions and have varying inputs and outputs. Matlab will run as
+many jobs as available workers in the pool and will queue the remainder,
+starting them as workers in the pool become available. Here is
+some demo code
+
+```{r, matlab-batch, engine='bash', eval=FALSE}
+```
+
+And if you want to run threaded code in a given job, you can do that
+by setting the number of threads within the function called by *parfeval*.
+See the *testThread.m* file  for the *testThread*
+function.
+
+```{r, matlab-batch-thread, engine='bash', eval=FALSE}
+```
+

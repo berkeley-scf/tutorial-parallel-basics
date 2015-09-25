@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>Basics of Parallel Processing in R, Python, and Matlab</title>
+
+<script type="text/javascript">
+window.onload = function() {
+  var imgs = document.getElementsByTagName('img'), i, img;
+  for (i = 0; i < imgs.length; i++) {
+    img = imgs[i];
+    // center an image if it is the only element of its parent
+    if (img.parentElement.childElementCount === 1)
+      img.parentElement.style.textAlign = 'center';
+  }
+};
+</script>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: #990073
+   }
+
+   pre .number {
+     color: #099;
+   }
+
+   pre .comment {
+     color: #998;
+     font-style: italic
+   }
+
+   pre .keyword {
+     color: #900;
+     font-weight: bold
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: #d14;
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+<!-- MathJax scripts -->
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 {
+   font-size:2.2em;
+}
+
+h2 {
+   font-size:1.8em;
+}
+
+h3 {
+   font-size:1.4em;
+}
+
+h4 {
+   font-size:1.0em;
+}
+
+h5 {
+   font-size:0.9em;
+}
+
+h6 {
+   font-size:0.8em;
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+pre {
+  overflow-x: auto;
+}
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * {
+      background: transparent !important;
+      color: black !important;
+      filter:none !important;
+      -ms-filter: none !important;
+   }
+
+   body {
+      font-size:12pt;
+      max-width:100%;
+   }
+
+   a, a:visited {
+      text-decoration: underline;
+   }
+
+   hr {
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote {
+      padding-right: 1em;
+      page-break-inside: avoid;
+   }
+
+   tr, img {
+      page-break-inside: avoid;
+   }
+
+   img {
+      max-width: 100% !important;
+   }
+
+   @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+   }
+
+   @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+   }
+
+   p, h2, h3 {
+      orphans: 3; widows: 3;
+   }
+
+   h2, h3 {
+      page-break-after: avoid;
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<h1>Basics of Parallel Processing in R, Python, and Matlab</h1>
+
+<h2>Threaded linear algebra and parallel for loops in a shared memory (single machine) context</h2>
+
+<p>Chris Paciorek, Department of Statistics, UC Berkeley</p>
+
+<h1>0) This Tutorial</h1>
+
+<p>This tutorial covers basic strategies for using parallel processing in R, Python, and Matlab on single machine in which multiple processors (cores) share memory. </p>
+
+<p>In the future, a screencast of the material may accompany this document.</p>
+
+<p>We&#39;ll use a virtual machine developed here at Berkeley, <a href="http://bce.berkeley.edu">the Berkeley Common Environment (BCE)</a>. BCE is a virtual Linux machine - basically it is a Linux computer that you can run within your own computer, regardless of whether you are using Windows, Mac, or Linux. This provides a common environment so that things behave the same for all of us. Assuming you have multiple cores on your physical machine, you can enable use of multiple cores within BCE by going to <code>Settings -&gt; System -&gt; Processor</code> and changing the number of processors to more than 1. (You may also want to increase the memory allocated to the VM.) Note that if you are using a version of BCE before BCE-fall-2015 you may need to install some additional packages using the <em>add-parallel-tools.sh</em> script available at <a href="http://bce.berkeley.edu/downloads.html">http://bce.berkeley.edu/downloads.html</a>. However, you may also be able to work through this material on your own computer provided you are able install the software used here. </p>
+
+<p>This tutorial assumes you have a working knowledge of either R, Python, or Matlab. </p>
+
+<p>Materials for this tutorial, including the R markdown file and associated code files that were used to create this document are available on Github at <a href="https://github.com/berkeley-scf/tutorial-parallel-basics">https://github.com/berkeley-scf/tutorial-parallel-basics</a>.  You can download the files by doing a git clone from a terminal window on a UNIX-like machine, as follows:</p>
+
+<pre><code class="r">git clone https://github.com/berkeley-scf/tutorial-parallel-basics
+</code></pre>
+
+<p>To create this HTML document, simply compile the corresponding R Markdown file in R as follows (the following will work from within BCE after cloning the repository as above).</p>
+
+<pre><code class="r">Rscript -e &quot;library(knitr); knit2html(&#39;parallel-basics.Rmd&#39;)&quot;
+</code></pre>
+
+<p>This tutorial by Christopher Paciorek is licensed under a Creative Commons Attribution 3.0 Unported License.</p>
+
+<h1>1) Types of parallel processing</h1>
+
+<p>There are two basic flavors of parallel processing (leaving aside
+GPUs): distributed memory and shared memory. With shared memory, multiple
+processors (which I&#39;ll call cores) share the same memory. With distributed
+memory, you have multiple nodes, each with their own memory. You can
+think of each node as a separate computer connected by a fast network. </p>
+
+<h2>1.1) Some useful terminology:</h2>
+
+<ul>
+<li><em>cores</em>: We&#39;ll use this term to mean the different processing
+units available on a single node.</li>
+<li><em>nodes</em>: We&#39;ll use this term to mean the different computers,
+each with their own distinct memory, that make up a cluster or supercomputer.</li>
+<li><em>processes</em>: computational tasks executing on a machine; multiple
+processes may be executing at once. A given program may start up multiple
+processes at once. Ideally we have no more processes than cores on
+a node.</li>
+<li><em>threads</em>: multiple paths of execution within a single process;
+the OS sees the threads as a single process, but one can think of
+them as &#39;lightweight&#39; processes. Ideally when considering the processes
+and their threads, we would have no more processes and threads combined
+than cores on a node.</li>
+<li><em>forking</em>: child processes are spawned that are identical to
+the parent, but with different process IDs and their own memory.</li>
+<li><em>sockets</em>: some of R&#39;s parallel functionality involves creating
+new R processes (e.g., starting processes via <em>Rscript</em>) and
+communicating with them via a communication technology called sockets.</li>
+</ul>
+
+<h2>1.2) Shared memory</h2>
+
+<p>For shared memory parallelism, each core is accessing the same memory
+so there is no need to pass information (in the form of messages)
+between different machines. But in some programming contexts one needs
+to be careful that activity on different cores doesn&#39;t mistakenly
+overwrite places in memory that are used by other cores.</p>
+
+<p>We&#39;ll cover two types of  shared memory parallelism approaches:</p>
+
+<ul>
+<li>threaded linear algebra </li>
+<li>multicore functionality </li>
+</ul>
+
+<h3>Threading</h3>
+
+<p>Threads are multiple paths of execution within a single process. If you are monitoring CPU
+usage (such as with <em>top</em> in BCE) and watching a job that is executing threaded code, you&#39;ll
+see the process using more than 100% of CPU. When this occurs, the
+process is using multiple cores, although it appears as a single process
+rather than as multiple processes. </p>
+
+<h2>1.3) Distributed memory</h2>
+
+<p>Parallel programming for distributed memory parallelism requires passing
+messages between the different nodes. The standard protocol for doing
+this is MPI, of which there are various versions, including <em>openMPI</em>.</p>
+
+<p>The R package <em>Rmpi</em> implements MPI in R. The <em>pbd</em> packages for R also implement MPI as well as distributed linear algebra (linear algebra calculations across nodes). </p>
+
+<p>Python has a package <em>mpi4py</em> that allows use of MPI within Python.</p>
+
+<p>Matlab has its own system for distributed computation, called the Distributed Computing Server (DCS), requiring additional licensing above the standard Matlab installation. </p>
+
+<p>This tutorial will not cover distributed memory parallelization, though a future tutorial may. </p>
+
+<h2>1.4) Other type of parallel processing</h2>
+
+<p>We won&#39;t cover either of these in this material.</p>
+
+<h3>GPUs</h3>
+
+<p>GPUs (Graphics Processing Units) are processing units originally designed
+for rendering graphics on a computer quickly. This is done by having
+a large number of simple processing units for massively parallel calculation.
+The idea of general purpose GPU (GPGPU) computing is to exploit this
+capability for general computation. </p>
+
+<p>In spring 2014, I gave a <a href="http://statistics.berkeley.edu/computing/gpu">workshop on using GPUs</a>.</p>
+
+<h3>Spark and Hadoop</h3>
+
+<p>Spark and Hadoop are systems for implementing computations in a distributed
+memory environment, using the MapReduce approach. In fall 2014, I gave a <a href="http://statistics.berkeley.edu/computing/gpu">workshop on using Spark</a>.</p>
+
+<h1>2) Threading, particularly for linear algebra</h1>
+
+<h1>2.1) What is the BLAS?</h1>
+
+<p>The BLAS is the library of basic linear algebra operations (written in
+Fortran or C). A fast BLAS can greatly speed up linear algebra
+relative to the default BLAS on a machine. Some fast BLAS libraries
+are </p>
+
+<ul>
+<li>Intel&#39;s <em>MKL</em>; may be available for educational use for free</li>
+<li><em>OpenBLAS</em> (formerly <em>GotoBLAS</em>); open source and free</li>
+<li>AMD&#39;s <em>ACML</em>; free</li>
+<li><em>vecLib</em> for Macs; provided with your Mac</li>
+</ul>
+
+<p>In addition to being fast when used on a single core, all of these BLAS libraries are
+threaded - if your computer has multiple cores and there are free
+resources, your linear algebra will use multiple cores, provided your
+program is linked against the threaded BLAS installed on your machine and provided
+OMP_NUM_THREADS is not set to one. (Macs make use of
+VECLIB_MAXIMUM_THREADS rather than OMP_NUM_THREADS.)</p>
+
+<p>On BCE, both R and Python are linked against OpenBLAS as of BCE-fall-2015. (Note: for BCE-2015-spring, you need to run the add-on script <em>add-parallel-tools.sh</em> (see Section 0) to install OpenBLAS and link R against it; however  this will not link Python against OpenBLAS.)</p>
+
+<h2>2.2) Using threading</h2>
+
+<h3>2.2.1) Using threading in R</h3>
+
+<p>Threading in R is limited to linear algebra, provided R is linked against a threaded BLAS.</p>
+
+<p>Here&#39;s some code that illustrates
+the speed of using a threaded BLAS:</p>
+
+<pre><code class="r"># install.packages(&#39;RhpcBLASctl&#39;) # not installed by default on BCE
+library(RhpcBLASctl)
+x &lt;- matrix(rnorm(5000^2), 5000)
+
+blas_set_num_threads(4)
+system.time({
+   x &lt;- crossprod(x)
+   U &lt;- chol(x)
+})
+
+#   user  system elapsed 
+# 14.104   5.403   6.752 
+
+blas_set_num_threads(1)
+system.time({
+   x &lt;- crossprod(x)
+   U &lt;- chol(x)
+})
+
+#   user  system elapsed 
+# 12.393   0.055  12.344 
+</code></pre>
+
+<p>Here the elapsed time indicates that using four threads gave us a two times (2x) speedup in terms of real time, while the user time indicates that the threaded calculation took a bit more total processing time (combining time across all processors) because of the overhead of using multiple threads. </p>
+
+<p>Note that the code also illustrates use of an R package that can control the number of threads from within R.</p>
+
+<h3>2.2.2) Python</h3>
+
+<p>As with R, threading in Python is limited to linear algebra, provided Python is linked against a threaded BLAS.  Python has something
+called the <a href="https://wiki.python.org/moin/GlobalInterpreterLock">Global Interpreter Lock</a>
+that interferes with threading in Python (but not in threaded linear algebra packages called by Python). </p>
+
+<p>Here&#39;s some linear algebra in  Python that will use threading if <em>numpy</em> is linked against a threaded BLAS, though I don&#39;t compare the timing for different numbers of threads here. </p>
+
+<pre><code class="python">import numpy as np
+n = 5000
+x = np.random.normal(0, 1, size=(n, n))
+x = x.T.dot(x)
+U = np.linalg.cholesky(x)
+</code></pre>
+
+<h3>2.2.3) Matlab</h3>
+
+<p>Many Matlab functions are automatically threaded (not just linear
+algebra), so you don&#39;t need to do anything special in your code to
+take advantage of this. 
+So if you&#39;re running Matlab and monitoring CPU usage (e.g., using
+<em>top</em> on Linux or OS X), you may see a process using more than 100% of CPU. However
+worker tasks within a <em>parfor</em> (see Section 3) use only a single thread. 
+Matlab uses MKL for linear algebra. </p>
+
+<h2>2.3) Fixing the number of threads (cores used)</h2>
+
+<p>In general, threaded code will
+detect the number of cores available on a machine and make use of
+them. However, you can also explicitly control the number of threads
+available to a process. </p>
+
+<h3>2.3.1) R, Python, C, etc.</h3>
+
+<p>For most threaded code (that based on the openMP protocol), the number
+of threads can be set by setting the OMP_NUM_THREADS environment
+variable (VECLIB_MAXIMUM_THREADS on a Mac). E.g., to set it for four
+threads in bash:</p>
+
+<p><code>export OMP_NUM_THREADS=4</code></p>
+
+<p>Do this before starting your R or Python session or before running your compiled executable. </p>
+
+<p>Alternatively, you can set OMP_NUM_THREADS as you invoke your job, e.g., here with R:</p>
+
+<p><code>OMP_NUM_THREADS=4 R CMD BATCH --no-save job.R job.out</code></p>
+
+<h3>2.3.2) Matlab</h3>
+
+<p>Matlab is an exception. Threading in Matlab can be controlled
+in two ways. From within your Matlab code you can set the number of
+threads, e.g., to four in this case:</p>
+
+<p><code>feature(&#39;numThreads&#39;, 4)</code></p>
+
+<p>To use only a single thread, you can use 1 instead of 4 above, or
+you can start Matlab with the <em>singleCompThread</em> flag:</p>
+
+<p><code>matlab -singleCompThread ...</code></p>
+
+<h2>2.4) Important warnings about use of threaded BLAS</h2>
+
+<h3>2.4.1) Speed and threaded BLAS</h3>
+
+<p>In many cases, using multiple threads for linear algebra operations
+will outperform using a single thread, but there is no guarantee that
+this will be the case, in particular for operations with small matrices
+and vectors. Testing with openBLAS suggests that sometimes a job may
+take more time when using multiple threads; this seems to be less
+likely with ACML. This presumably occurs because openBLAS is not doing
+a good job in detecting when the overhead of threading outweights
+the gains from distributing the computations. You can compare speeds
+by setting OMP_NUM_THREADS to different values. In cases where threaded
+linear algebra is slower than unthreaded, you would want to set OMP_NUM_THREADS
+to 1. </p>
+
+<p>More generally, if you are using the parallel tools in Section 3 to 
+simultaneously carry out many independent calculations (tasks), it is
+likely to be more effective to use the fixed number of cores available on your machine
+ so as to split up the tasks, one per core, without taking advantage of the threaded BLAS (i.e., restricting
+each process to a single thread). </p>
+
+<h3>2.4.2) Conflict between openBLAS and some parallel functionality in R</h3>
+
+<p>There are conflicts between forking in R and threaded BLAS that in
+some cases affect </p>
+
+<ul>
+<li><em>foreach</em> (when using the <em>parallel</em> (and <em>multicore</em>) backends),</li>
+<li><em>mclapply</em>, and</li>
+<li><em>parLapply</em> and <em>parSapply</em> (only if <em>cluster</em> is set up with forking &ndash; not the default).</li>
+</ul>
+
+<p>The result is that if linear algebra is used within your parallel
+code, R hangs. This affects (under somewhat different circumstances)
+both ACML and openBLAS.</p>
+
+<p>To address this, before running an R job that does linear algebra,
+you can set OMP_NUM_THREADS to 1 to prevent the BLAS from doing
+threaded calculations. Alternatively, you can use MPI as the parallel
+backend (via <em>doMPI</em> in place of <em>doParallel</em>).
+You may also be able to convert your code to use <em>par{L,S}apply</em>
+with the default PSOCK type and avoid <em>foreach</em> entirely.</p>
+
+<h3>2.4.3) Conflict between threaded BLAS and R profiling</h3>
+
+<p>There is also a conflict between threaded BLAS and R profiling, so
+if you are using <em>Rprof</em>, you may need to set OMP_NUM_THREADS
+to one. This has definitely occurred with openBLAS; I&#39;m not sure about
+other threaded BLAS libraries.</p>
+
+<p><strong>Caution</strong>: Note that I don&#39;t pay any attention to possible
+danger in generating random numbers in separate processes in this Section. More on
+this issue in Section 4.</p>
+
+<h2>2.5) Using an optimized BLAS on your own machine(s)</h2>
+
+<p>To use an optimized BLAS with R, talk to your systems administrator, see <a href="https://cran.r-project.org/manuals.html">Section A.3 of the R Installation and Administration Manual</a>, or see <a href="http://statistics.berkeley.edu/computing/blas">these instructions to use <em>vecLib</em> BLAS from Apple&#39;s Accelerate framework on your own Mac</a>.</p>
+
+<p>It&#39;s also possible to use an optimized BLAS with Python&#39;s numpy and scipy packages, on either Linux or using the Mac&#39;s <em>vecLib</em> BLAS. Details will depend on how you install Python, numpy, and scipy. </p>
+
+<h1>3) Basic parallelized loops/maps/apply</h1>
+
+<p>All of the functionality discussed here applies <em>only</em> if the iterations/loops of your calculations can be done completely separately and do not depend on one another. This scenario is called an <em>embarrassingly parallel</em> computation.  So coding up the evolution of a time series or a Markov chain is not possible using these tools. However, bootstrapping, random forests, simulation studies, cross-validation
+and many other statistical methods can be handled in this way.</p>
+
+<h2>3.1) Parallel loops and <em>apply</em> functions in R</h2>
+
+<h3>3.1.1) Parallel for loops with <em>foreach</em></h3>
+
+<p>A simple way to exploit parallelism in R  is to use the <em>foreach</em> package to do a for loop in parallel.</p>
+
+<p>The <em>foreach</em> package provides a <em>foreach</em> command that
+allows you to do this easily. <em>foreach</em> can use a variety of
+parallel &ldquo;back-ends&#39;&#39;. For our purposes, the main one is use of the <em>parallel</em> package to use shared
+memory cores. When using <em>parallel</em> as the
+back-end, you should see multiple processes (as many as you registered;
+ideally each at 100%) when you  monitor CPU usage. The multiple processes
+are created by forking or using sockets. <em>foreach</em> can also use <em>Rmpi</em> to access cores in
+a distributed memory setting, but that is beyond the scope of this document.</p>
+
+<pre><code class="r">library(parallel) # one of the core R packages
+library(doParallel)
+</code></pre>
+
+<pre><code>## Loading required package: foreach
+## Loading required package: iterators
+</code></pre>
+
+<pre><code class="r"># library(multicore); library(doMC) # alternative to parallel/doParallel
+# library(Rmpi); library(doMPI) # to use Rmpi as the back-end
+library(foreach)
+library(iterators)
+
+taskFun &lt;- function(){
+    mn &lt;- mean(rnorm(10000000))
+    return(mn)
+}
+nCores &lt;- 4  # to set manually
+registerDoParallel(nCores) 
+# registerDoMC(nCores) # alternative to registerDoParallel
+# cl &lt;- startMPIcluster(nCores); registerDoMPI(cl) # when using Rmpi as the back-end
+
+out &lt;- foreach(i = 1:30, .combine = c) %dopar% {
+    cat(&#39;Starting &#39;, i, &#39;th job.\n&#39;, sep = &#39;&#39;)
+    outSub &lt;- taskFun()
+    cat(&#39;Finishing &#39;, i, &#39;th job.\n&#39;, sep = &#39;&#39;)
+    outSub # this will become part of the out object
+}
+print(out)
+</code></pre>
+
+<pre><code>##  [1] -2.864229e-04 -7.760995e-04  2.668879e-04  4.970891e-04  2.576493e-04
+##  [6] -1.081236e-03 -1.510978e-04  2.108771e-04 -3.624112e-04 -4.703415e-04
+## [11] -3.723379e-04  5.210529e-04  6.487047e-04 -2.994041e-04  3.052549e-04
+## [16]  8.962823e-05 -1.337941e-06  1.137251e-04  1.437553e-04 -1.808128e-04
+## [21]  1.912200e-04 -1.014088e-04  5.903271e-05  2.283462e-04  3.741175e-04
+## [26] -3.278787e-04 -1.363756e-04 -2.272851e-04  2.120783e-05 -2.459155e-04
+</code></pre>
+
+<p>(Note that the printed statements from <code>cat</code> are not showing up in the creation of this document but should show if you run the code.)</p>
+
+<p>Note that <em>foreach</em>
+also provides functionality for collecting and managing
+the results to avoid some of the bookkeeping
+you would need to do if writing your own standard for loop.
+The result of <em>foreach</em> will generally be a list, unless 
+we request the results be combined in different way, as we do here using <code>.combine = c</code>.</p>
+
+<p>You can debug by running serially using <em>%do%</em> rather than
+<em>%dopar%</em>. Note that you may need to load packages within the
+<em>foreach</em> construct to ensure a package is available to all of
+the calculations.</p>
+
+<h3>3.1.2) Parallel apply functionality</h3>
+
+<p>The <em>parallel</em> package has the ability to parallelize the various
+<em>apply</em> functions (apply, lapply, sapply, etc.). It&#39;s a bit hard to find the <a href="http://stat.ethz.ch/R-manual/R-devel/library/parallel/doc/parallel.pdf">vignette for the parallel package</a>
+because parallel is not listed as one of
+the contributed packages on CRAN (it gets installed with R by default).</p>
+
+<p>We&#39;ll consider parallel lapply and sapply. These rely on having started a cluster using <em>cluster</em>, which  uses the PSOCK mechanism as in the SNOW package - starting new jobs via <em>Rscript</em> 
+and communicating via a technology called sockets.</p>
+
+<pre><code class="r">library(parallel)
+nCores &lt;- 4  # to set manually 
+cl &lt;- makeCluster(nCores) 
+
+nSims &lt;- 60
+input &lt;- seq_len(nSims) # same as 1:nSims but more robust
+taskFun &lt;- function(i){
+    mn &lt;- mean(rnorm(1000000))
+    return(mn)
+}
+# clusterExport(cl, c(&#39;x&#39;, &#39;y&#39;)) # if the processes need objects (x and y, here) from the master&#39;s workspace
+system.time(
+    res &lt;- parSapply(cl, input, taskFun)
+)
+</code></pre>
+
+<pre><code>##    user  system elapsed 
+##   0.004   0.000   1.552
+</code></pre>
+
+<pre><code class="r">system.time(
+    res2 &lt;- sapply(input, taskFun)
+)
+</code></pre>
+
+<pre><code>##    user  system elapsed 
+##   4.657   0.067   4.723
+</code></pre>
+
+<pre><code class="r">res &lt;- parLapply(cl, input, taskFun)
+</code></pre>
+
+<p>Here the miniscule user time is probably because the time spent in the worker processes is not counted at the level of the overall master process that dispatches the workers.</p>
+
+<p>For help with these functions and additional related parallelization functions (including <em>parApply</em>), see <code>help(clusterApply)</code>.</p>
+
+<p><em>mclapply</em> is an alternative that uses forking to start up the worker processes.</p>
+
+<pre><code class="r">system.time(
+    res &lt;- mclapply(input, taskFun, mc.cores = nCores) 
+)
+</code></pre>
+
+<pre><code>##    user  system elapsed 
+##  11.172   0.168   1.773
+</code></pre>
+
+<p>Note that some R packages can directly interact with the parallelization
+packages to work with multiple cores. E.g., the <em>boot</em> package
+can make use of the <em>parallel</em> package directly. </p>
+
+<h2>3.2) Parallel looping in Python</h2>
+
+<p>There are a number of approaches to parallelization in Python. We&#39;ll
+cover two of the basic approaches here. </p>
+
+<h3>3.2.1) <em>pp</em> package</h3>
+
+<p>Here we create a server object and submit jobs to the server object,
+which manages the farming out of the tasks. Note that this will run
+interactively in iPython or as a script from UNIX, but will not run
+interactively in the base Python interpreter (for reasons that are
+unclear to me). Also note that while we are illustrating this as basically
+another parallelized for loop, the individual jobs can be whatever
+calculations you want, so the <em>taskFun</em> function could change from
+job to job.</p>
+
+<pre><code class="python">import numpy
+import pp
+
+nCores = 4
+job_server = pp.Server(ncpus = nCores, secret = &#39;mysecretphrase&#39;)
+# set &#39;secret&#39; to some passphrase (you need to set it but 
+#   what it is should not be crucial)
+job_server.get_ncpus()
+
+nSmp = 10000000
+m = 40
+def taskFun(i, n):
+    numpy.random.seed(i)
+    return (i, numpy.mean(numpy.random.normal(0, 1, n)))
+
+# create list of tuples to iterate over
+inputs = [(i, nSmp) for i in xrange(m)]
+# submit and run jobs using list comprehension
+jobs = [job_server.submit(taskFun, invalue, modules = (&#39;numpy&#39;,)) for invalue in inputs]
+# collect results (will have to wait for longer tasks to finish)
+results = [job() for job in jobs]
+print(results)
+job_server.destroy()
+</code></pre>
+
+<pre><code>[(0, 0.00030280243091597474), (1, -8.5722825540149767e-05), (2, 0.00013566614947237407), (3, 0.00061310818505479474), (4, -0.0004702706491795272), (5, 0.00024515486966970537), (6, -0.00017472300458822845), (7, -0.00025050095623507584), (8, -0.00033399772183492841), (9, -0.00049137138871004158), (10, 0.00029251318047107422), (11, 1.1956375483643322e-05), (12, -0.00010810414999124078), (13, 0.00015533121727716678), (14, -0.00092143784872822018), (15, -7.4020047531168942e-05), (16, -0.00027179897723462343), (17, -0.00020500359099047446), (18, 5.0102720605584639e-05), (19, -0.00031948846032527046), (20, -5.4961570167677311e-05), (21, -0.00057477384497516828), (22, 0.00035571929916218195), (23, 0.0003172760600221845), (24, -3.9757431343687736e-05), (25, 0.00037903275195759294), (26, -0.00010435497860874407), (27, 0.0001701626336006962), (28, -0.00069358450543517865), (29, 0.00067886194920371693), (30, -0.00051310981441539557), (31, -3.0022955955111069e-05), (32, -0.00063590672702952002), (33, -0.00031966078315322541), (34, -0.00015649509164027703), (35, 0.00028376009875884391), (36, 0.00018534703816611961), (37, -0.00021821998172858934), (38, 8.0842394421238762e-05), (39, -0.00014637870897851111)]
+</code></pre>
+
+<h3>3.2.2) <em>multiprocessing</em> package</h3>
+
+<p>Here we&#39;ll use the <em>Pool.map</em> method
+to iterate in a parallelized fashion, as the Python analog to <em>foreach</em>
+or <em>parfor</em>. <em>Pool.map</em> only supports having a single
+argument to the function being used, so we&#39;ll use list of tuples,
+and pass each tuple as the argument. </p>
+
+<pre><code class="python">import multiprocessing as mp
+import numpy as np
+
+nCores = 4 # to set manually
+
+nSmp = 10000000
+m = 40
+def taskFun(input):
+    np.random.seed(input[0])
+    return np.mean(np.random.normal(0, 1, input[1]))
+
+# create list of tuples to iterate over, since
+# Pool.map() does not support multiple arguments
+inputs = [(i, nSmp) for i in xrange(m)]
+inputs[0:2]
+pool = mp.Pool(processes = nCores)
+results = pool.map(taskFun, inputs)
+print(results)
+</code></pre>
+
+<pre><code>## [0.00030280243091597474, -8.5722825540149767e-05, 0.00013566614947237407, 0.00061310818505479474, -0.0004702706491795272, 0.00024515486966970537, -0.00017472300458822845, -0.00025050095623507584, -0.00033399772183492841, -0.00049137138871004158, 0.00029251318047107422, 1.1956375483643322e-05, -0.00010810414999124078, 0.00015533121727716678, -0.00092143784872822018, -7.4020047531168942e-05, -0.00027179897723462343, -0.00020500359099047446, 5.0102720605584639e-05, -0.00031948846032527046, -5.4961570167677311e-05, -0.00057477384497516828, 0.00035571929916218195, 0.0003172760600221845, -3.9757431343687736e-05, 0.00037903275195759294, -0.00010435497860874407, 0.0001701626336006962, -0.00069358450543517865, 0.00067886194920371693, -0.00051310981441539557, -3.0022955955111069e-05, -0.00063590672702952002, -0.00031966078315322541, -0.00015649509164027703, 0.00028376009875884391, 0.00018534703816611961, -0.00021821998172858934, 8.0842394421238762e-05, -0.00014637870897851111]
+</code></pre>
+
+<h2>3.3) Basic shared memory parallel programming in Matlab</h2>
+
+<p>To run a loop in parallel in Matlab, you can use the <em>parfor</em>
+construction.  Before running the parfor you
+need to start up a set of workers using <em>parpool</em>. Matlab will use only  one thread
+per worker. 
+Here is some demo code:</p>
+
+<pre><code class="bash">nslots = 4; # to set manually
+mypool = parpool(nslots) 
+% parpool open local nslots # alternative
+
+n = 3000;
+nIts = 500;
+c = zeros(n, nIts);
+parfor i = 1:nIts
+     c(:,i) = eig(rand(n)); 
+end
+
+delete(mypool)
+
+% delete(gcp) works if you forget to name your pool by assigning the output of parpool to a variable
+</code></pre>
+
+<p>Matlab has a default limit on the number of workers in a pool, but you can modify your Matlab settings  as follows to increase that limit (in this case to allow up to 32 workers). It should work to run the following code once in a Matlab session, which will modify the settings for future Matlab sessions.</p>
+
+<pre><code>cl = parcluster(&#39;local&#39;);
+cl.NumWorkers = 32;
+saveProfile(cl);
+</code></pre>
+
+<h1>4) Parallelization strategies</h1>
+
+<p>The following are some basic principles/suggestions for how to parallelize
+your computation.</p>
+
+<p>Should I use one machine/node or many machines/nodes?</p>
+
+<ul>
+<li>If you can do your computation on the cores of a single node using
+shared memory, that will be faster than using the same number of cores
+(or even somewhat more cores) across multiple nodes. Similarly, jobs
+with a lot of data/high memory requirements that one might think of
+as requiring Spark or Hadoop may in some cases be much faster if you can find
+a single machine with a lot of memory.</li>
+<li>That said, if you would run out of memory on a single node, then you&#39;ll
+need to use distributed memory.</li>
+</ul>
+
+<p>What level or dimension should I parallelize over?</p>
+
+<ul>
+<li>If you have nested loops, you generally only want to parallelize at
+one level of the code. That said, there may be cases in which it is
+helpful to do both. Keep in mind whether your linear algebra is being
+threaded. Often you will want to parallelize over a loop and not use
+threaded linear algebra.</li>
+<li>Often it makes sense to parallelize the outer loop when you have nested
+loops.</li>
+<li>You generally want to parallelize in such a way that your code is
+load-balanced and does not involve too much communication. </li>
+</ul>
+
+<p>How do I balance communication overhead with keeping my cores busy?</p>
+
+<ul>
+<li>If you have very few tasks, particularly if the tasks take different
+amounts of time, often some processors will be idle and your code
+poorly load-balanced.</li>
+<li>If you have very many tasks and each one takes little time, the communication
+overhead of starting and stopping the tasks will reduce efficiency.</li>
+</ul>
+
+<p>Should multiple tasks be pre-assigned to a process (i.e., a worker) (sometimes called <em>prescheduling</em>) or should tasks
+be assigned dynamically as previous tasks finish? </p>
+
+<ul>
+<li>Basically if you have many tasks that each take similar time, you
+want to preschedule the tasks to reduce communication. If you have few tasks
+or tasks with highly variable completion times, you don&#39;t want to
+preschedule, to improve load-balancing.</li>
+<li>For R in particular, some of R&#39;s parallel functions allow you to say whether the 
+tasks should be prescheduled. E.g., the <em>mc.preschedule</em> argument in <em>mclapply</em> and
+the <em>.scheduling</em> argument in <em>parLapply</em>.</li>
+</ul>
+
+<h1>5) Random number generation (RNG) in parallel</h1>
+
+<p>The key thing when thinking about random numbers in a parallel context
+is that you want to avoid having the same &#39;random&#39; numbers occur on
+multiple processes. On a computer, random numbers are not actually
+random but are generated as a sequence of pseudo-random numbers designed
+to mimic true random numbers. The sequence is finite (but very long)
+and eventually repeats itself. When one sets a seed, one is choosing
+a position in that sequence to start from. Subsequent random numbers
+are based on that subsequence. All random numbers can be generated
+from one or more random uniform numbers, so we can just think about
+a sequence of values between 0 and 1. </p>
+
+<p>The worst thing that could happen is that one sets things up in such
+a way that every process is using the same sequence of random numbers.
+This could happen if you mistakenly set the same seed in each process,
+e.g., using <em>set.seed(mySeed)</em> in R on every process.</p>
+
+<p>The naive approach is to use a different seed for each process. E.g.,
+if your processes are numbered <code>id = 1,2,...,p</code>  with a variable <em>id</em> that is  unique
+to a process, setting the seed to be the value of <em>id</em> on each process. This is likely
+not to cause problems, but raises the danger that two (or more sequences)
+might overlap. For an algorithm with dependence on the full sequence,
+such as an MCMC, this probably won&#39;t cause big problems (though you
+likely wouldn&#39;t know if it did), but for something like simple simulation
+studies, some of your &#39;independent&#39; samples could be exact replicates
+of a sample on another process. Given the period length of the default
+generators in R, Matlab and Python, this is actually quite unlikely,
+but it is a bit sloppy.</p>
+
+<p>One approach to avoid the problem is to do all your RNG on one process
+and distribute the random deviates, but this can be infeasible with
+many random numbers.</p>
+
+<p>More generally to avoid this problem, the key is to use an algorithm
+that ensures sequences that do not overlap.</p>
+
+<h2>5.1) Ensuring separate sequences in R</h2>
+
+<p>In R, the  <em>rlecuyer</em> package deals with this (<em>rsprng</em> used to but it is no longer on CRAN).
+The L&#39;Ecuyer algorithm has a period of \(2^{191}\), which it divides
+into subsequences of length \(2^{127}\). </p>
+
+<h3>5.1.1) With the parallel package</h3>
+
+<p>Here&#39;s how you initialize independent sequences on different processes
+when using the <em>parallel</em> package&#39;s parallel apply functionality
+(illustrated here with <em>parSapply</em>).</p>
+
+<pre><code class="r">library(parallel)
+library(rlecuyer)
+nSims &lt;- 250
+taskFun &lt;- function(i){
+    val &lt;- runif(1)
+    return(val)
+}
+
+nCores &lt;- 4
+RNGkind()
+</code></pre>
+
+<pre><code>## [1] &quot;Mersenne-Twister&quot; &quot;Inversion&quot;
+</code></pre>
+
+<pre><code class="r">cl &lt;- makeCluster(nCores)
+iseed &lt;- 0
+clusterSetRNGStream(cl = cl, iseed = iseed)
+RNGkind() # clusterSetRNGStream sets RNGkind as L&#39;Ecuyer-CMRG
+</code></pre>
+
+<pre><code>## [1] &quot;Mersenne-Twister&quot; &quot;Inversion&quot;
+</code></pre>
+
+<pre><code class="r"># but it doesn&#39;t show up here on the master
+res &lt;- parSapply(cl, 1:nSims, taskFun)
+# now redo with same master seed to see results are the same
+clusterSetRNGStream(cl = cl, iseed = iseed)
+res2 &lt;- parSapply(cl, 1:nSims, taskFun)
+identical(res,res2)
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<pre><code class="r">stopCluster(cl)
+</code></pre>
+
+<p>If you want to explicitly move from stream to stream, you can use
+<em>nextRNGStream</em>. For example:</p>
+
+<pre><code class="r">RNGkind(&quot;L&#39;Ecuyer-CMRG&quot;) 
+seed &lt;- 0
+set.seed(seed)
+## now start M workers 
+s &lt;- .Random.seed 
+for (i in 1:M) { 
+    s &lt;- nextRNGStream(s) 
+    # send s to worker i as .Random.seed 
+} 
+</code></pre>
+
+<p>When using <em>mclapply</em>, you can use the <em>mc.set.seed</em> argument
+as follows (note that <em>mc.set.seed</em> is TRUE by default, so you
+should get different seeds for the different processes by default),
+but one needs to invoke <code>RNGkind(&quot;L&#39;Ecuyer-CMRG&quot;)</code>
+to get independent streams via the L&#39;Ecuyer algorithm.</p>
+
+<pre><code class="r">library(parallel)
+library(rlecuyer)
+RNGkind(&quot;L&#39;Ecuyer-CMRG&quot;)
+res &lt;- mclapply(seq_len(nSims), taskFun, mc.cores = nCores, 
+    mc.set.seed = TRUE) 
+# this also seems to reset the seed when it is run
+res2 &lt;- mclapply(seq_len(nSims), taskFun, mc.cores = nCores, 
+    mc.set.seed = TRUE) 
+identical(res,res2)
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<p>The documentation for <em>mcparallel</em> gives more information about
+reproducibility based on <em>mc.set.seed</em>.</p>
+
+<h3>5.1.2) With foreach</h3>
+
+<h4>Getting independent streams</h4>
+
+<p>One question is whether <em>foreach</em> deals with RNG correctly. This
+is not documented, but the developers (Revolution Analytics) are well
+aware of RNG issues. Digging into the underlying code reveals that
+the <em>doParallel</em> backend invokes <em>mclapply</em>
+and sets <em>mc.set.seed</em> to TRUE by default. This suggests that
+the discussion above r.e. <em>mclapply</em> holds for <em>foreach</em>
+as well, so you should do <code>RNGkind(&quot;L&#39;Ecuyer-CMRG&quot;)</code>
+before your foreach call. </p>
+
+<h4>Ensuring reproducibility</h4>
+
+<p>While using <em>foreach</em> as just described should ensure that the
+streams on each worker are are distinct, it does not ensure reproducibility
+because task chunks may be assigned to workers differently in different
+runs and the substreams are specific to workers, not to tasks. </p>
+
+<p>For other backends, such as <em>doParallel</em>, there is a package
+called <em>doRNG</em> that ensures that <em>foreach</em> loops are reproducible.
+Here&#39;s how you do it:</p>
+
+<pre><code class="r">library(doRNG)
+</code></pre>
+
+<pre><code>## Loading required package: rngtools
+## Loading required package: methods
+## Loading required package: pkgmaker
+## Loading required package: registry
+## 
+## Attaching package: &#39;pkgmaker&#39;
+## 
+## The following object is masked from &#39;package:base&#39;:
+## 
+##     isNamespaceLoaded
+</code></pre>
+
+<pre><code>## Warning: closing unused connection 8 (&lt;-localhost:11821)
+</code></pre>
+
+<pre><code>## Warning: closing unused connection 7 (&lt;-localhost:11821)
+</code></pre>
+
+<pre><code>## Warning: closing unused connection 6 (&lt;-localhost:11821)
+</code></pre>
+
+<pre><code>## Warning: closing unused connection 5 (&lt;-localhost:11821)
+</code></pre>
+
+<pre><code class="r">library(doParallel)
+registerDoParallel(nCores)
+registerDoRNG(seed = 0) 
+result &lt;- foreach(i = 1:20) %dopar% { 
+    out &lt;- mean(rnorm(1000)) 
+}
+registerDoRNG(seed = 0) 
+result2 &lt;- foreach(i = 1:20) %dopar% { 
+    out &lt;- mean(rnorm(1000)) 
+}
+identical(result,result2)
+</code></pre>
+
+<pre><code>## [1] TRUE
+</code></pre>
+
+<p>You can ignore the warnings about closing unused connections printed out above.</p>
+
+<h2>5.2) RNG in Python</h2>
+
+<p>Python uses the Mersenne-Twister generator. If you&#39;re using the RNG
+in <em>numpy/scipy</em>, you can set the seed using <code>numpy.random.seed</code> or <code>scipy.random.seed</code>.
+The advice I&#39;m seeing online in various Python forums is to just set
+separate seeds, so it appears the Python is a bit behind R and Matlab here.
+ There is a function <em>random.jumpahead</em> that
+allows you to move the seed ahead as if a given number of random numbers
+had been generated, but this function will not be in Python 3.x, so
+I won&#39;t suggest using it. </p>
+
+<h2>5.3) RNG in Matlab</h2>
+
+<p>Matlab also uses the Mersenne-Twister. We can set the seed as: <code>rng(seed)</code>,
+with seed being a non-negative integer. </p>
+
+<p>Happily, like R, we can set up independent streams, using either of
+the Combined Multiple Recursive (&#39;mrg32k3a&#39;) and the Multiplicative
+Lagged Fibonacci (&#39;mlfg6331_64&#39;) generators. Here&#39;s an example, where
+we create the second of the 5 streams, as if we were using this code
+in the second of our parallel processes. The <code>&#39;Seed&#39;,0</code> part
+is not actually needed as that is the default.</p>
+
+<pre><code>thisStream = 2;
+totalNumStreams = 5;
+seed = 0;
+cmrg1 = RandStream.create(&#39;mrg32k3a&#39;, &#39;NumStreams&#39;, totalNumStreams, 
+   &#39;StreamIndices&#39;, thisStream, &#39;Seed&#39;, seed); 
+RandStream.setGlobalStream(cmrg1);
+randn(5, 1)
+</code></pre>
+
+<h1>Appendix: Other shared memory parallelization functionality in R and Matlab</h1>
+
+<h2>Other parallel functionality in R</h2>
+
+<p>One can use <em>mcparallel</em> in the <em>parallel</em> package to
+send different chunks of code to different processes. Here we would
+need to manage the number of tasks so that we don&#39;t have more tasks
+than available cores.</p>
+
+<pre><code class="r">library(parallel)
+n &lt;- 10000000
+system.time({
+    p &lt;- mcparallel(mean(rnorm(n)))
+    q &lt;- mcparallel(mean(rgamma(n, shape = 1)))
+    res &lt;- mccollect(list(p,q))
+})
+</code></pre>
+
+<pre><code>##    user  system elapsed 
+##   1.053   0.035   1.711
+</code></pre>
+
+<pre><code class="r">system.time({
+    p &lt;- mean(rnorm(n))
+    q &lt;- mean(rgamma(n, shape = 1))
+})
+</code></pre>
+
+<pre><code>##    user  system elapsed 
+##   2.733   0.004   2.737
+</code></pre>
+
+<p>Note that <em>mcparallel</em> also allows the use of the <em>mc.set.seed</em>
+argument as with <em>mclapply</em>.</p>
+
+<p>Note that on the cluster, one should create only as many parallel
+blocks of code as were requested when submitting the job.</p>
+
+<p>Now let&#39;s consider parallel evaluation of a vectorized function. This
+will often only be worthwhile on very long vectors and for computationally
+intensive calculations. (The <em>Matern</em> call here is more time-consuming
+than <em>exp</em>).</p>
+
+<pre><code class="r">library(parallel)
+nCores &lt;- 8
+cl &lt;- makeCluster(nCores) 
+library(fields)
+</code></pre>
+
+<pre><code>## Loading required package: spam
+## Loading required package: grid
+## Spam version 1.0-1 (2014-09-09) is loaded.
+## Type &#39;help( Spam)&#39; or &#39;demo( spam)&#39; for a short introduction 
+## and overview of this package.
+## Help for individual functions is also obtained by adding the
+## suffix &#39;.spam&#39; to the function name, e.g. &#39;help( chol.spam)&#39;.
+## 
+## Attaching package: &#39;spam&#39;
+## 
+## The following objects are masked from &#39;package:base&#39;:
+## 
+##     backsolve, forwardsolve
+## 
+## Loading required package: maps
+</code></pre>
+
+<pre><code class="r">ds &lt;- runif(6000000, .1, 10)
+ds_exp &lt;- pvec(ds, exp, mc.cores = nCores)
+# here&#39;s a more computationally intensive function
+system.time(
+    corVals &lt;- pvec(ds, Matern, .1, 2, mc.cores = nCores)
+)
+</code></pre>
+
+<pre><code>##    user  system elapsed 
+##   5.990   0.321   1.009
+</code></pre>
+
+<pre><code class="r">system.time(
+    corVals &lt;- Matern(ds, .1, 2)
+)
+</code></pre>
+
+<pre><code>##    user  system elapsed 
+##   3.630   0.016   3.646
+</code></pre>
+
+<h2>Manually parallelizing individual tasks in Matlab</h2>
+
+<p>In addition to using <em>parfor</em> in Matlab, you can also explicitly program parallelization, managing the individual
+parallelized tasks. Here is some template code for doing this. We&#39;ll
+submit our jobs to a pool of workers so that we have control over
+how many jobs are running at once. Note that here I submit 6 jobs
+that call the same function, but the different jobs could call different
+functions and have varying inputs and outputs. Matlab will run as
+many jobs as available workers in the pool and will queue the remainder,
+starting them as workers in the pool become available. Here is
+some demo code</p>
+
+<pre><code class="bash">feature(&#39;numThreads&#39;, 1); 
+ncores = 4;
+pool = parpool(ncores); 
+% assume you have test.m with a function, test, taking two inputs 
+% (n and seed) and returning 1 output
+n = 10000000;
+job = cell(1,6); 
+job{1} = parfeval(pool, @test, 1, n, 1);  
+job{2} = parfeval(pool, @test, 1, n, 2);  
+job{3} = parfeval(pool, @test, 1, n, 3);  
+job{4} = parfeval(pool, @test, 1, n, 4);  
+job{5} = parfeval(pool, @test, 1, n, 5);  
+job{6} = parfeval(pool, @test, 1, n, 6);  
+
+% wait for outputs, in order
+output = cell(1, 6);
+for idx = 1:6
+  output{idx} = fetchOutputs(job{idx});
+end 
+
+% alternative way to loop over jobs:
+for idx = 1:6
+  jobs(idx) = parfeval(pool, @test, 1, n, idx); 
+end 
+
+% wait for outputs as they finish
+output = cell(1, 6);
+for idx = 1:6
+  [completedIdx, value] = fetchNext(jobs);
+  output{completedIdx} = value;
+end 
+
+delete(pool);
+</code></pre>
+
+<p>And if you want to run threaded code in a given job, you can do that
+by setting the number of threads within the function called by <em>parfeval</em>.
+See the <em>testThread.m</em> file  for the <em>testThread</em>
+function.</p>
+
+<pre><code class="bash">ncores = 8;
+n = 5000;
+nJobs = 4;
+pool = parpool(nJobs);
+% pass number of threads as number of slots divided by number of jobs
+% testThread function should then do: 
+% feature(&#39;numThreads&#39;, nThreads);
+% where nThreads is the name of the relevant argument to testThread
+jobt1 = parfeval(pool, @testThread, 1, n, 1, nCores/nJobs);
+jobt2 = parfeval(pool, @testThread, 1, n, 2, nCores/nJobs);
+jobt3 = parfeval(pool, @testThread, 1, n, 3, nCores/nJobs);
+jobt4 = parfeval(pool, @testThread, 1, n, 4, nCores/nJobs);
+
+output1 = fetchOutputs(jobt1);
+output2 = fetchOutputs(jobt2);
+output3 = fetchOutputs(jobt3);
+output4 = fetchOutputs(jobt4);
+
+delete(pool);
+</code></pre>
+
+</body>
+
+</html>
