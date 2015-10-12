@@ -472,6 +472,10 @@ int main(){
 }
 ```
 
+## 3.5) Calling OpenMP-based C code from R
+
+The easiest path here is to use the *Rcpp* package. In this case, you can write your C++ code with OpenMP pragma statemetns as in the previous subsection. You'll need to make sure that the *PKG_CXXFLAGS* and *PKG_LIBS* environment variables are set to include `-f openmp` so the compilation is done correctly. More details/examples linked to from [this Stack overflow post](http://stackoverflow.com/questions/22748358/rcpp-with-openmp).
+
 # 4) Parallelization strategies
 
 The following are some basic principles/suggestions for how to parallelize
