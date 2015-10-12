@@ -1,4 +1,4 @@
-Basics of Parallel Processing in R, Python, and Matlab
+Basics of Parallel Processing in R, Python, Matlab, and C
 ==============================================================
 Threaded linear algebra and parallel for loops in a shared memory (single machine) context
 --------------
@@ -15,13 +15,13 @@ read_chunk('parallel-basics.m')
 
 # 0) This Tutorial
 
-This tutorial covers basic strategies for using parallel processing in R, Python, and Matlab on single machine in which multiple processors (cores) share memory. 
+This tutorial covers basic strategies for using parallel processing in R, Python, Matlab, and C on single machine in which multiple processors (cores) share memory. 
 
 In the future, a screencast of the material may accompany this document.
 
 We'll use a virtual machine developed here at Berkeley, [the Berkeley Common Environment (BCE)](http://bce.berkeley.edu). BCE is a virtual Linux machine - basically it is a Linux computer that you can run within your own computer, regardless of whether you are using Windows, Mac, or Linux. This provides a common environment so that things behave the same for all of us. Assuming you have multiple cores on your physical machine, you can enable use of multiple cores within BCE by going to `Settings -> System -> Processor` and changing the number of processors to more than 1. (You may also want to increase the memory allocated to the VM.) Note that if you are using a version of BCE before BCE-fall-2015 you may need to install some additional packages using the *add-parallel-tools.sh* script available at http://bce.berkeley.edu/downloads.html. However, you may also be able to work through this material on your own computer provided you are able install the software used here. 
 
-This tutorial assumes you have a working knowledge of either R, Python, or Matlab. 
+This tutorial assumes you have a working knowledge of either R, Python, Matlab, or C. 
 
 Materials for this tutorial, including the R markdown file and associated code files that were used to create this document are available on Github at https://github.com/berkeley-scf/tutorial-parallel-basics.  You can download the files by doing a git clone from a terminal window on a UNIX-like machine, as follows:
 ```{r, clone, eval=FALSE}
@@ -138,12 +138,12 @@ program is linked against the threaded BLAS installed on your machine and provid
 OMP_NUM_THREADS is not set to one. (Macs make use of
 VECLIB_MAXIMUM_THREADS rather than OMP_NUM_THREADS.)
 
-On BCE, both R and Python are linked against OpenBLAS as of BCE-fall-2015. (Note: for BCE-2015-spring, you need to run the add-on script *add-parallel-tools.sh* (see Section 0) to install OpenBLAS and link R against it; however  this will not link Python against OpenBLAS.)
+On BCE, both R and (to some degree) Python are linked against OpenBLAS as of BCE-fall-2015. (Note: for BCE-2015-spring, you need to run the add-on script *add-parallel-tools.sh* (see Section 0) to install OpenBLAS and link R against it; however  this will not link Python against OpenBLAS.)
 
 
 ## 2.2) Using threading 
 
-### 2.2.1) Using threading in R
+### 2.2.1) R
 
 Threading in R is limited to linear algebra, provided R is linked against a threaded BLAS.
 
@@ -399,6 +399,79 @@ cl.NumWorkers = 32;
 saveProfile(cl);
 ```
 
+## 3.4) Using *OpenMP* threads for basic shared memory programming in C
+
+It's straightforward to write threaded code in C and C++ (as well as Fortran) to exploit multiple cores. The basic approach is to use the OpenMP protocol. Here's how one would parallelize a loop in C/C++ using an OpenMP compiler directive. In this case we are parallelizing the outer loop; the iterations of the outer loop are done in parallel, while the iterations of the inner loop are done serially within a thread. As with *foreach* in R, you only want to do this if the iterations do not depend on each other. The code is available as a C++ program (but the core of the code is just C code) in *testOpenMP.cpp*.
+
+```
+// see testOpenMP.cpp
+#include <iostream>
+using namespace std;
+
+// compile with:  g++ -fopenmp -L/usr/local/lib  
+//                  testOpenMP.cpp -o testOpenMP 
+
+int main(){
+  int nReps = 20;
+  double x[nReps];
+  #pragma omp parallel for
+  for (int i=0; i<nReps; i++){
+    x[i] = 0.0;
+    for ( int j=0; j<1000000000; j++){
+      x[i] = x[i] + 1.0;
+    }
+    cout << x[i] << endl;
+  }
+  return 0;
+}
+```
+
+We would compile this program as follows
+
+```
+$ g++ -fopenmp testOpenMP.cpp -o testOpenMP
+```
+
+The main thing to be aware of in using OpenMP is not having different threads overwrite variables used by other threads. In the example above, variables declared within the `#pragma` directive will be recognized as variables that are private to each thread. In fact, you could declare `int i` before the compiler directive and things would be fine because OpenMP is smart enough to deal properly with the primary looping variable. But big problems would ensue if you had instead written the following code:
+
+```
+int main(){
+  int nReps = 20;
+  int j;  // DON'T DO THIS !!!!!!!!!!!!!
+  double x[nReps];
+  #pragma omp parallel for
+  for (int i=0; i<nReps; i++){
+    x[i] = 0.0;
+    for (j=0; j<1000000000; j++){
+      x[i] = x[i] + 1.0;
+    }
+    cout << x[i] << endl;
+  }
+  return 0;
+}
+```
+
+Note that we do want *x* declared before the compiler directive because we want all the threads to write to a common *x* (but, importantly, to different components of *x*). That's the point!
+
+We can also be explicit about what is shared and what is private to each thread:
+
+```
+int main(){
+  int nReps = 20;
+  int i, j;
+  double x[nReps];
+  #pragma omp parallel for private(i,j) shared(x, nReps)
+  for (i=0; i<nReps; i++){
+    x[i] = 0.0;
+    for (j=0; j<1000000000; j++){
+      x[i] = x[i] + 1.0;
+    }
+    cout << x[i] << endl;
+  }
+  return 0;
+}
+```
+
 # 4) Parallelization strategies
 
 The following are some basic principles/suggestions for how to parallelize
@@ -589,8 +662,6 @@ randn(5, 1)
 
 # Appendix: Other shared memory parallelization functionality in R and Matlab
 
-
-
 ## Other parallel functionality in R
 
 One can use *mcparallel* in the *parallel* package to
@@ -638,3 +709,113 @@ function.
 ```{r, matlab-batch-thread, engine='bash', eval=FALSE}
 ```
 
+## More advanced use of *OpenMP* in C
+
+The goal here is just to give you a sense of what is possible with OpenMP. 
+
+The OpenMP API provides three components: compiler directives that parallelize your code (such as `#pragma omp parallel for`), library functions (such as `omp_get_thread_num()`), and environment variables (such as `OMP_NUM_THREADS`)
+
+OpenMP constructs apply to structured blocks of code. Blocks may be executed in parallel or sequentially, depending on how one uses the OpenMP pragma statements. One can also force execution of a block to wait until particular preceding blocks have finished, using a *barrier*. 
+
+Here's a basic "Hello, world" example that illustrates how it works (the full program is in *helloWorldOpenMP.cpp*):
+
+```
+// see helloWorldOpenMP.cpp
+#include <stdio.h>
+#include <omp.h> // needed when using any openMP functions 
+//                               like omp_get_thread_num()
+
+void myFun(double *in, int id){
+// this is the function that would presumably do the heavy computational stuff
+}
+
+int main()
+{
+   int nthreads, myID;
+   double* input;
+   /* make the values of nthreads and myid private to each thread */
+   #pragma omp parallel private (nthreads, myID)
+   { // beginning of block
+      myID = omp_get_thread_num();
+      printf("Hello, I am thread %d\n", myID);
+      myFun(input, myID);  // do some computation on each thread
+      /* only master node print the number of threads */
+      if (myid == 0)
+      {
+         nthreads = omp_get_num_threads();
+         printf("I'm the boss and control %i threads. How come they're in front of me?\n", nThreads);
+      }
+   } // end of block
+   return 0;
+} 
+```
+
+The *parallel* directive starts a team of threads, including the master, which is a member of the team and has thread number 0. The number of threads is determined in the following ways - here the first two options specify four threads:
+
+1. #pragma omp parallel NUM_THREADS (4) // set 4 threads for this parallel block
+
+2. omp_set_num_threads(4) // set four threads in general
+
+3. the value of the OMP_NUM_THREADS environment variable
+
+4. a default - usually the number of cores on the compute node
+
+Note that in `#pragma omp parallel for`, there are actually two instructions, `parallel` starts a team of threads, and `for` farms out the iterations to the team. In our parallel for invocation, we could have done it more explicitly as:
+
+```
+#pragma omp parallel
+#pragma omp for
+```
+
+We can also explicitly distribute different chunks of code amongst different threads as seen here and in the full program in *sectionsOpenMP.cpp*.
+
+```
+// see sectionsOpenMP.cpp
+#pragma omp parallel // starts a new team of threads
+{
+   Work0(); // this function would be run by all threads. 
+   #pragma omp sections // divides the team into sections 
+   { 
+      // everything herein is run only once. 
+      #pragma omp section 
+      { Work1(); } 
+      #pragma omp section 
+      { 
+         Work2(); 
+         Work3(); 
+      } 
+      #pragma omp section 
+      { Work4(); } 
+   }
+} // implied barrier
+```
+
+Here Work1, {Work2 + Work3} and Work4 are done in parallel, but Work2 and Work3 are done in sequence (on a single thread).
+
+If one wants to make sure that all of a parallized calculation is complete before any further code is executed you can insert `#pragma omp barrier`. 
+
+Note that a `#pragma for` statement includes an implicit barrier as does the end of any block specified with `#pragma omp parallel`.
+
+You can use `nowait` if you explicitly want to prevent threads from waiting at an implicit barrier: e.g., `#pragma omp parallel sections nowait` or `#pragma omp parallel for nowait`
+
+One should be careful about multiple threads writing to the same variable at the same time (this is an example of a race condition). In the example below, if one doesn't have the `#pragma omp critical` directive two threads could read the current value of *result* at the same time and then sequentially write to *result* after incrementing their local copy, which would result in one of the increments being lost. A way to avoid this is with the *critical* directive (for single lines of code you can also use `atomic` instead of `critical`), as seen here and in the full program in *criticalOpenMP.cpp*:
+
+```
+// see criticalOpenMP.cpp
+double result = 0.0;
+double tmp;
+#pragma omp parallel for private (tmp, i) shared (result)
+for (int i=0; i<n; i++){
+   tmp = myFun(i);
+   #pragma omp critical
+   result += tmp;
+}
+```
+
+You should also be able to use syntax like the following for the parallel for declaration (in which case you shouldn't need the `#pragma omp critical`):
+
+```
+#pragma omp parallel for reduction(+:result)
+```
+
+I believe that doing this sort of calculation where multiple threads write to the same variable may be rather inefficient given time lost in waiting to have access to result, but presumably this would depend on how much time is spent in *myFun()* relative to the reduction operation.
