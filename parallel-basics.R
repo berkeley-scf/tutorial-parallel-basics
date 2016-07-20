@@ -24,12 +24,10 @@ system.time({
 
 ## @knitr foreach
 
-library(parallel) # one of the core R packages
-library(doParallel)
+library(doParallel)  # uses parallel package, a core R package
 # library(multicore); library(doMC) # alternative to parallel/doParallel
 # library(Rmpi); library(doMPI) # to use Rmpi as the back-end
-library(foreach)
-library(iterators)
+
 
 taskFun <- function(){
 	mn <- mean(rnorm(10000000))
