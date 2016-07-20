@@ -312,7 +312,7 @@ a large number of simple processing units for massively parallel calculation.
 The idea of general purpose GPU (GPGPU) computing is to exploit this
 capability for general computation. </p>
 
-<p>In spring 2014, I gave a <a href="http://statistics.berkeley.edu/computing/gpu">workshop on using GPUs</a>.</p>
+<p>In spring 2016, I gave a <a href="http://statistics.berkeley.edu/computing/gpu">workshop on using GPUs</a>.</p>
 
 <h3>Spark and Hadoop</h3>
 
@@ -521,18 +521,17 @@ ideally each at 100%) when you  monitor CPU usage. The multiple processes
 are created by forking or using sockets. <em>foreach</em> can also use <em>Rmpi</em> to access cores in
 a distributed memory setting, but that is beyond the scope of this document.</p>
 
-<pre><code class="r">library(parallel) # one of the core R packages
-library(doParallel)
+<pre><code class="r">library(doParallel)  # uses parallel package, a core R package
 </code></pre>
 
 <pre><code>## Loading required package: foreach
 ## Loading required package: iterators
+## Loading required package: parallel
 </code></pre>
 
 <pre><code class="r"># library(multicore); library(doMC) # alternative to parallel/doParallel
 # library(Rmpi); library(doMPI) # to use Rmpi as the back-end
-library(foreach)
-library(iterators)
+
 
 taskFun &lt;- function(){
     mn &lt;- mean(rnorm(10000000))
@@ -552,12 +551,12 @@ out &lt;- foreach(i = 1:30, .combine = c) %dopar% {
 print(out)
 </code></pre>
 
-<pre><code>##  [1]  2.380000e-04  2.704680e-04 -4.891975e-05  2.945776e-04 -5.681126e-04
-##  [6]  2.792289e-04 -4.563983e-04  8.222986e-05  3.985316e-04 -3.521159e-04
-## [11] -1.038594e-04  3.037330e-04  3.939833e-05  2.224976e-04 -1.439767e-04
-## [16] -2.665062e-04  2.090712e-04 -1.358802e-04  2.774179e-05 -6.152629e-05
-## [21]  3.632028e-05 -1.548869e-05  1.542496e-04  1.544802e-04 -2.659293e-04
-## [26]  2.832898e-04  1.119370e-04 -2.429768e-04 -2.019986e-04 -1.959285e-05
+<pre><code>##  [1] -2.242340e-04  1.536052e-04  3.894386e-04  1.546062e-04  4.855275e-04
+##  [6]  6.403603e-05 -1.812507e-04  1.262649e-04  9.319538e-05  1.688128e-04
+## [11]  2.030903e-04  2.411700e-04  1.208212e-04  2.226950e-04 -4.155576e-04
+## [16]  3.898426e-04 -2.857088e-04  3.469190e-04 -2.693103e-04 -7.424724e-05
+## [21]  3.233581e-04  1.211771e-04 -5.427609e-04 -1.809884e-05  4.130974e-04
+## [26]  1.014646e-04  6.390488e-04  3.889964e-05  3.909588e-04  1.001820e-04
 </code></pre>
 
 <p>(Note that the printed statements from <code>cat</code> are not showing up in the creation of this document but should show if you run the code.)</p>
@@ -601,7 +600,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   0.004   0.000   2.163
+##   0.000   0.004   2.181
 </code></pre>
 
 <pre><code class="r">system.time(
@@ -610,7 +609,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   4.781   0.045   4.825
+##   5.040   0.036   5.079
 </code></pre>
 
 <pre><code class="r">res &lt;- parLapply(cl, input, taskFun)
@@ -628,12 +627,20 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##  10.874   0.224   1.365
+##  14.672   0.212   2.210
 </code></pre>
 
 <p>Note that some R packages can directly interact with the parallelization
 packages to work with multiple cores. E.g., the <em>boot</em> package
 can make use of the <em>parallel</em> package directly. </p>
+
+<h3>3.1.3) Loading packages and accessing global variables within your parallel tasks</h3>
+
+<p>Whether you need to explicitly load packages and export global variables from the master process to the parallelized worker processes depends on the details of how you are doing the parallelization.</p>
+
+<p>With <em>foreach</em> with the <em>doParallel</em> backend, parallel <em>apply</em> statements (starting the cluster via <em>makeForkCluster</em>, instead of the usual <em>makeCluster</em>), and <em>mclapply</em>, packages and global variables in the main R process are automatically available to the worker tasks without any work on your part. This is because all of these approaches fork the original R process, thereby creating worker processes with the same state as the original R process. Interestingly, this means that global variables in the forked worker processes are just references to the objects in memory in the original R process. So the additional processes do not use additional memory for those objects (despite what is shown in <em>top</em>) and there is no time involved in making copies. However, if you modify objects in the worker processes then copies are made. </p>
+
+<p>In contrast, with parallel <em>apply</em> statements when starting the cluster using the standard <em>makeCluster</em> (which sets up a so-called <em>PSOCK</em> cluster, starting the R worker processes via <em>Rscript</em>), one needs to load packages within the code that is executed in parallel. In addition one needs to use <em>clusterExport</em> to tell R which objects in the global environment should be available to the worker processes. This involves making as many copies of the objects as there are worker processes, so one can easily exceed the physical memory (RAM) on the machine if one has large objects, and the copying of large objects will take time. </p>
 
 <h2>3.2) Parallel looping in Python</h2>
 
@@ -707,7 +714,9 @@ results = pool.map(taskFun, inputs)
 print(results)
 </code></pre>
 
-<pre><code>## [0.00030280243091597474, -8.5722825540149767e-05, 0.00013566614947237407, 0.00061310818505479474, -0.0004702706491795272, 0.00024515486966970537, -0.00017472300458822845, -0.00025050095623507584, -0.00033399772183492841, -0.00049137138871004158, 0.00029251318047107422, 1.1956375483643322e-05, -0.00010810414999124078, 0.00015533121727716678, -0.00092143784872822018, -7.4020047531168942e-05, -0.00027179897723462343, -0.00020500359099047446, 5.0102720605584639e-05, -0.00031948846032527046, -5.4961570167677311e-05, -0.00057477384497516828, 0.00035571929916218195, 0.0003172760600221845, -3.9757431343687736e-05, 0.00037903275195759294, -0.00010435497860874407, 0.0001701626336006962, -0.00069358450543517865, 0.00067886194920371693, -0.00051310981441539557, -3.0022955955111069e-05, -0.00063590672702952002, -0.00031966078315322541, -0.00015649509164027703, 0.00028376009875884391, 0.00018534703816611961, -0.00021821998172858934, 8.0842394421238762e-05, -0.00014637870897851111]
+<pre><code>## Traceback (most recent call last):
+##   File &quot;&lt;string&gt;&quot;, line 2, in &lt;module&gt;
+## ImportError: No module named numpy
 </code></pre>
 
 <h2>3.3) Basic shared memory parallel programming in Matlab</h2>
@@ -920,7 +929,12 @@ when using the <em>parallel</em> package&#39;s parallel apply functionality
 
 <pre><code class="r">library(parallel)
 library(rlecuyer)
-nSims &lt;- 250
+</code></pre>
+
+<pre><code>## Error in library(rlecuyer): there is no package called &#39;rlecuyer&#39;
+</code></pre>
+
+<pre><code class="r">nSims &lt;- 250
 taskFun &lt;- function(i){
     val &lt;- runif(1)
     return(val)
@@ -978,7 +992,12 @@ to get independent streams via the L&#39;Ecuyer algorithm.</p>
 
 <pre><code class="r">library(parallel)
 library(rlecuyer)
-RNGkind(&quot;L&#39;Ecuyer-CMRG&quot;)
+</code></pre>
+
+<pre><code>## Error in library(rlecuyer): there is no package called &#39;rlecuyer&#39;
+</code></pre>
+
+<pre><code class="r">RNGkind(&quot;L&#39;Ecuyer-CMRG&quot;)
 res &lt;- mclapply(seq_len(nSims), taskFun, mc.cores = nCores, 
     mc.set.seed = TRUE) 
 # this also seems to reset the seed when it is run
@@ -1021,38 +1040,27 @@ called <em>doRNG</em> that ensures that <em>foreach</em> loops are reproducible.
 <pre><code class="r">library(doRNG)
 </code></pre>
 
-<pre><code>## Loading required package: rngtools
-## Loading required package: methods
-## Loading required package: pkgmaker
-## Loading required package: registry
-## 
-## Attaching package: &#39;pkgmaker&#39;
-## 
-## The following object is masked from &#39;package:base&#39;:
-## 
-##     isNamespaceLoaded
-</code></pre>
-
-<pre><code>## Warning: closing unused connection 8 (&lt;-localhost:11615)
-</code></pre>
-
-<pre><code>## Warning: closing unused connection 7 (&lt;-localhost:11615)
-</code></pre>
-
-<pre><code>## Warning: closing unused connection 6 (&lt;-localhost:11615)
-</code></pre>
-
-<pre><code>## Warning: closing unused connection 5 (&lt;-localhost:11615)
+<pre><code>## Error in library(doRNG): there is no package called &#39;doRNG&#39;
 </code></pre>
 
 <pre><code class="r">library(doParallel)
 registerDoParallel(nCores)
 registerDoRNG(seed = 0) 
-result &lt;- foreach(i = 1:20) %dopar% { 
+</code></pre>
+
+<pre><code>## Error in eval(expr, envir, enclos): could not find function &quot;registerDoRNG&quot;
+</code></pre>
+
+<pre><code class="r">result &lt;- foreach(i = 1:20) %dopar% { 
     out &lt;- mean(rnorm(1000)) 
 }
 registerDoRNG(seed = 0) 
-result2 &lt;- foreach(i = 1:20) %dopar% { 
+</code></pre>
+
+<pre><code>## Error in eval(expr, envir, enclos): could not find function &quot;registerDoRNG&quot;
+</code></pre>
+
+<pre><code class="r">result2 &lt;- foreach(i = 1:20) %dopar% { 
     out &lt;- mean(rnorm(1000)) 
 }
 identical(result,result2)
@@ -1113,8 +1121,20 @@ system.time({
 })
 </code></pre>
 
+<pre><code>## Warning: closing unused connection 8 (&lt;-localhost:11842)
+</code></pre>
+
+<pre><code>## Warning: closing unused connection 7 (&lt;-localhost:11842)
+</code></pre>
+
+<pre><code>## Warning: closing unused connection 6 (&lt;-localhost:11842)
+</code></pre>
+
+<pre><code>## Warning: closing unused connection 5 (&lt;-localhost:11842)
+</code></pre>
+
 <pre><code>##    user  system elapsed 
-##   1.019   0.035   1.671
+##   1.072   0.032   2.484
 </code></pre>
 
 <pre><code class="r">system.time({
@@ -1124,7 +1144,7 @@ system.time({
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   2.682   0.020   2.700
+##   2.780   0.024   2.802
 </code></pre>
 
 <p>Note that <em>mcparallel</em> also allows the use of the <em>mc.set.seed</em>
@@ -1144,9 +1164,10 @@ cl &lt;- makeCluster(nCores)
 library(fields)
 </code></pre>
 
-<pre><code>## Loading required package: spam
+<pre><code>## Loading required package: methods
+## Loading required package: spam
 ## Loading required package: grid
-## Spam version 1.0-1 (2014-09-09) is loaded.
+## Spam version 1.2-1 (2015-09-30) is loaded.
 ## Type &#39;help( Spam)&#39; or &#39;demo( spam)&#39; for a short introduction 
 ## and overview of this package.
 ## Help for individual functions is also obtained by adding the
@@ -1159,6 +1180,18 @@ library(fields)
 ##     backsolve, forwardsolve
 ## 
 ## Loading required package: maps
+## 
+##  # ATTENTION: maps v3.0 has an updated &#39;world&#39; map.        #
+##  # Many country borders and names have changed since 1990. #
+##  # Type &#39;?world&#39; or &#39;news(package=&quot;maps&quot;)&#39;. See README_v3. #
+## 
+## 
+## 
+## Attaching package: &#39;fields&#39;
+## 
+## The following object is masked from &#39;package:maps&#39;:
+## 
+##     ozone
 </code></pre>
 
 <pre><code class="r">ds &lt;- runif(6000000, .1, 10)
@@ -1170,7 +1203,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   5.865   0.257   1.016
+##   3.656   0.636   1.733
 </code></pre>
 
 <pre><code class="r">system.time(
@@ -1179,7 +1212,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   3.622   0.009   3.629
+##   3.904   0.028   3.931
 </code></pre>
 
 <h2>Manually parallelizing individual tasks in Matlab</h2>
