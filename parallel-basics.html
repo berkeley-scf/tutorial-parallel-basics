@@ -551,12 +551,12 @@ out &lt;- foreach(i = 1:30, .combine = c) %dopar% {
 print(out)
 </code></pre>
 
-<pre><code>##  [1] -2.242340e-04  1.536052e-04  3.894386e-04  1.546062e-04  4.855275e-04
-##  [6]  6.403603e-05 -1.812507e-04  1.262649e-04  9.319538e-05  1.688128e-04
-## [11]  2.030903e-04  2.411700e-04  1.208212e-04  2.226950e-04 -4.155576e-04
-## [16]  3.898426e-04 -2.857088e-04  3.469190e-04 -2.693103e-04 -7.424724e-05
-## [21]  3.233581e-04  1.211771e-04 -5.427609e-04 -1.809884e-05  4.130974e-04
-## [26]  1.014646e-04  6.390488e-04  3.889964e-05  3.909588e-04  1.001820e-04
+<pre><code>##  [1] -1.598825e-04  2.882180e-05 -3.259267e-04 -2.459858e-04 -6.895254e-05
+##  [6] -8.434503e-05 -9.131569e-05 -2.727020e-05 -1.946554e-04  2.193390e-05
+## [11] -1.747705e-04  2.311579e-04  5.776101e-05  2.089880e-04 -4.866150e-04
+## [16]  3.129296e-05  5.480037e-05  4.162630e-04  3.417353e-04 -3.006129e-04
+## [21]  6.454809e-05 -2.638304e-04 -9.425558e-05  5.916829e-04  1.820595e-04
+## [26] -4.116495e-04 -5.914842e-04  3.725898e-04  4.315482e-04  5.051632e-05
 </code></pre>
 
 <p>(Note that the printed statements from <code>cat</code> are not showing up in the creation of this document but should show if you run the code.)</p>
@@ -600,7 +600,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   0.000   0.004   2.181
+##   0.004   0.000   1.838
 </code></pre>
 
 <pre><code class="r">system.time(
@@ -609,7 +609,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   5.040   0.036   5.079
+##   4.892   0.040   4.929
 </code></pre>
 
 <pre><code class="r">res &lt;- parLapply(cl, input, taskFun)
@@ -627,7 +627,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##  14.672   0.212   2.210
+##   9.808   0.124   2.097
 </code></pre>
 
 <p>Note that some R packages can directly interact with the parallelization
@@ -714,9 +714,7 @@ results = pool.map(taskFun, inputs)
 print(results)
 </code></pre>
 
-<pre><code>## Traceback (most recent call last):
-##   File &quot;&lt;string&gt;&quot;, line 2, in &lt;module&gt;
-## ImportError: No module named numpy
+<pre><code>## [0.00030280243091597474, -8.5722825540149767e-05, 0.00013566614947237407, 0.00061310818505479474, -0.0004702706491795272, 0.00024515486966970537, -0.00017472300458822845, -0.00025050095623507584, -0.00033399772183492841, -0.00049137138871004158, 0.00029251318047107422, 1.1956375483643322e-05, -0.00010810414999124078, 0.00015533121727716678, -0.00092143784872822018, -7.4020047531168942e-05, -0.00027179897723462343, -0.00020500359099047446, 5.0102720605584639e-05, -0.00031948846032527046, -5.4961570167677311e-05, -0.00057477384497516828, 0.00035571929916218195, 0.0003172760600221845, -3.9757431343687736e-05, 0.00037903275195759294, -0.00010435497860874407, 0.0001701626336006962, -0.00069358450543517865, 0.00067886194920371693, -0.00051310981441539557, -3.0022955955111069e-05, -0.00063590672702952002, -0.00031966078315322541, -0.00015649509164027703, 0.00028376009875884391, 0.00018534703816611961, -0.00021821998172858934, 8.0842394421238762e-05, -0.00014637870897851111]
 </code></pre>
 
 <h2>3.3) Basic shared memory parallel programming in Matlab</h2>
@@ -929,12 +927,7 @@ when using the <em>parallel</em> package&#39;s parallel apply functionality
 
 <pre><code class="r">library(parallel)
 library(rlecuyer)
-</code></pre>
-
-<pre><code>## Error in library(rlecuyer): there is no package called &#39;rlecuyer&#39;
-</code></pre>
-
-<pre><code class="r">nSims &lt;- 250
+nSims &lt;- 250
 taskFun &lt;- function(i){
     val &lt;- runif(1)
     return(val)
@@ -992,12 +985,7 @@ to get independent streams via the L&#39;Ecuyer algorithm.</p>
 
 <pre><code class="r">library(parallel)
 library(rlecuyer)
-</code></pre>
-
-<pre><code>## Error in library(rlecuyer): there is no package called &#39;rlecuyer&#39;
-</code></pre>
-
-<pre><code class="r">RNGkind(&quot;L&#39;Ecuyer-CMRG&quot;)
+RNGkind(&quot;L&#39;Ecuyer-CMRG&quot;)
 res &lt;- mclapply(seq_len(nSims), taskFun, mc.cores = nCores, 
     mc.set.seed = TRUE) 
 # this also seems to reset the seed when it is run
@@ -1040,27 +1028,26 @@ called <em>doRNG</em> that ensures that <em>foreach</em> loops are reproducible.
 <pre><code class="r">library(doRNG)
 </code></pre>
 
-<pre><code>## Error in library(doRNG): there is no package called &#39;doRNG&#39;
+<pre><code>## Loading required package: rngtools
+## Loading required package: methods
+## Loading required package: pkgmaker
+## Loading required package: registry
+## 
+## Attaching package: &#39;pkgmaker&#39;
+## 
+## The following object is masked from &#39;package:base&#39;:
+## 
+##     isNamespaceLoaded
 </code></pre>
 
 <pre><code class="r">library(doParallel)
 registerDoParallel(nCores)
 registerDoRNG(seed = 0) 
-</code></pre>
-
-<pre><code>## Error in eval(expr, envir, enclos): could not find function &quot;registerDoRNG&quot;
-</code></pre>
-
-<pre><code class="r">result &lt;- foreach(i = 1:20) %dopar% { 
+result &lt;- foreach(i = 1:20) %dopar% { 
     out &lt;- mean(rnorm(1000)) 
 }
 registerDoRNG(seed = 0) 
-</code></pre>
-
-<pre><code>## Error in eval(expr, envir, enclos): could not find function &quot;registerDoRNG&quot;
-</code></pre>
-
-<pre><code class="r">result2 &lt;- foreach(i = 1:20) %dopar% { 
+result2 &lt;- foreach(i = 1:20) %dopar% { 
     out &lt;- mean(rnorm(1000)) 
 }
 identical(result,result2)
@@ -1121,20 +1108,20 @@ system.time({
 })
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 8 (&lt;-localhost:11842)
+<pre><code>## Warning: closing unused connection 8 (&lt;-localhost:11268)
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 7 (&lt;-localhost:11842)
+<pre><code>## Warning: closing unused connection 7 (&lt;-localhost:11268)
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 6 (&lt;-localhost:11842)
+<pre><code>## Warning: closing unused connection 6 (&lt;-localhost:11268)
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 5 (&lt;-localhost:11842)
+<pre><code>## Warning: closing unused connection 5 (&lt;-localhost:11268)
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   1.072   0.032   2.484
+##   1.556   0.036   2.210
 </code></pre>
 
 <pre><code class="r">system.time({
@@ -1144,7 +1131,7 @@ system.time({
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   2.780   0.024   2.802
+##   2.752   0.000   2.753
 </code></pre>
 
 <p>Note that <em>mcparallel</em> also allows the use of the <em>mc.set.seed</em>
@@ -1164,8 +1151,7 @@ cl &lt;- makeCluster(nCores)
 library(fields)
 </code></pre>
 
-<pre><code>## Loading required package: methods
-## Loading required package: spam
+<pre><code>## Loading required package: spam
 ## Loading required package: grid
 ## Spam version 1.2-1 (2015-09-30) is loaded.
 ## Type &#39;help( Spam)&#39; or &#39;demo( spam)&#39; for a short introduction 
@@ -1203,7 +1189,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   3.656   0.636   1.733
+##   4.692   0.344   1.575
 </code></pre>
 
 <pre><code class="r">system.time(
@@ -1212,7 +1198,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   3.904   0.028   3.931
+##   3.788   0.016   3.808
 </code></pre>
 
 <h2>Manually parallelizing individual tasks in Matlab</h2>
