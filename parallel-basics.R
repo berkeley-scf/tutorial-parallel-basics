@@ -28,6 +28,9 @@ library(doParallel)  # uses parallel package, a core R package
 # library(multicore); library(doMC) # alternative to parallel/doParallel
 # library(Rmpi); library(doMPI) # to use Rmpi as the back-end
 
+source('rf.R')  # loads in data and looFit()
+
+looFit
 
 taskFun <- function(){
 	mn <- mean(rnorm(10000000))
@@ -38,13 +41,13 @@ registerDoParallel(nCores)
 # registerDoMC(nCores) # alternative to registerDoParallel
 # cl <- startMPIcluster(nCores); registerDoMPI(cl) # when using Rmpi as the back-end
 
-out <- foreach(i = 1:30, .combine = c) %dopar% {
+result <- foreach(i = 1:30) %dopar% {
 	cat('Starting ', i, 'th job.\n', sep = '')
-	outSub <- taskFun()
+	output <- looFit(i, Y, X)
 	cat('Finishing ', i, 'th job.\n', sep = '')
-	outSub # this will become part of the out object
+	output # this will become part of the out object
 }
-print(out)
+print(result)
 
 ## @knitr parallel_lsApply
 
@@ -52,26 +55,28 @@ library(parallel)
 nCores <- 4  # to set manually 
 cl <- makeCluster(nCores) 
 
-nSims <- 60
-input <- seq_len(nSims) # same as 1:nSims but more robust
-taskFun <- function(i){
-	mn <- mean(rnorm(1000000))
-	return(mn)
-}
-# clusterExport(cl, c('x', 'y')) # if the processes need objects (x and y, here) from the master's workspace
+n <- 60
+input <- seq_len(n) # same as 1:n but more robust
+
+# clusterExport(cl, c('x', 'y')) # if the processes need objects
+# from master's workspace (not needed here as no global vars used)
+
+# need to load randomForest package within function
+# when using par{L,S}apply
 system.time(
-	res <- parSapply(cl, input, taskFun)
+	res <- parSapply(cl, input, looFit, Y, X, TRUE)
 )
 system.time(
-	res2 <- sapply(input, taskFun)
+	res2 <- sapply(input, looFit, Y, X)
 )
-res <- parLapply(cl, input, taskFun)
+
+res <- parLapply(cl, input, looFit, Y, X, TRUE)
 
 
 ## @knitr mclapply
 
 system.time(
-	res <- mclapply(input, taskFun, mc.cores = nCores) 
+	res <- mclapply(input, looFit, Y, X, mc.cores = nCores) 
 )
 
 

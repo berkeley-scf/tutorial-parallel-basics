@@ -353,36 +353,24 @@ In contrast, with parallel *apply* statements when starting the cluster using th
 
 ## 3.2) Parallel looping in Python
 
-There are a number of approaches to parallelization in Python. We'll
-cover two of the basic approaches here. 
+I'll cover iPython parallel functionality, which allows one to parallelize on a single machine (discussed here) or across multiple machines (see the tutorial on distributed memory parallelization). There are a variety of other approaches one could use, of which I discuss two (the *pp* and *multiprocessing* packages) in the Appendix.
 
-### 3.2.1) *pp* package
+First we need to start our worker engines.
 
-Here we create a server object and submit jobs to the server object,
-which manages the farming out of the tasks. Note that this will run
-interactively in iPython or as a script from UNIX, but will not run
-interactively in the base Python interpreter (for reasons that are
-unclear to me). Also note that while we are illustrating this as basically
-another parallelized for loop, the individual jobs can be whatever
-calculations you want, so the *taskFun* function could change from
-job to job.
-
-```{r, python-pp, engine='python', eval=FALSE}
+```{r, ipython-parallel-setup, engine='bash', eval=TRUE}
+ipcluster start -n 4
+sleep 45
 ```
 
+Here we'll generate some fake data to fit a random forest model to and then use leave-one-out cross-validation to assess the model, parallelizing over the individual held-out observations.
+
+```{r, ipython-parallel, engine='python', eval=TRUE}
 ```
-[(0, 0.00030280243091597474), (1, -8.5722825540149767e-05), (2, 0.00013566614947237407), (3, 0.00061310818505479474), (4, -0.0004702706491795272), (5, 0.00024515486966970537), (6, -0.00017472300458822845), (7, -0.00025050095623507584), (8, -0.00033399772183492841), (9, -0.00049137138871004158), (10, 0.00029251318047107422), (11, 1.1956375483643322e-05), (12, -0.00010810414999124078), (13, 0.00015533121727716678), (14, -0.00092143784872822018), (15, -7.4020047531168942e-05), (16, -0.00027179897723462343), (17, -0.00020500359099047446), (18, 5.0102720605584639e-05), (19, -0.00031948846032527046), (20, -5.4961570167677311e-05), (21, -0.00057477384497516828), (22, 0.00035571929916218195), (23, 0.0003172760600221845), (24, -3.9757431343687736e-05), (25, 0.00037903275195759294), (26, -0.00010435497860874407), (27, 0.0001701626336006962), (28, -0.00069358450543517865), (29, 0.00067886194920371693), (30, -0.00051310981441539557), (31, -3.0022955955111069e-05), (32, -0.00063590672702952002), (33, -0.00031966078315322541), (34, -0.00015649509164027703), (35, 0.00028376009875884391), (36, 0.00018534703816611961), (37, -0.00021821998172858934), (38, 8.0842394421238762e-05), (39, -0.00014637870897851111)]
-```
 
-### 3.2.2) *multiprocessing* package
+Finally we stop the worker engines:
 
-Here we'll use the *Pool.map* method
-to iterate in a parallelized fashion, as the Python analog to *foreach*
-or *parfor*. *Pool.map* only supports having a single
-argument to the function being used, so we'll use list of tuples,
-and pass each tuple as the argument. 
-
-```{r, python-mp, engine='python', eval=TRUE}
+```{r, ipython-parallel-shutdown, engine='bash', eval=TRUE}
+ipcluster stop
 ```
 
 
@@ -720,6 +708,38 @@ function.
 
 ```{r, matlab-batch-thread, engine='bash', eval=FALSE}
 ```
+
+## Other approaches to parallelization in Python
+
+###  *pp* package
+
+Here we create a server object and submit jobs to the server object,
+which manages the farming out of the tasks. Note that this will run
+interactively in iPython or as a script from UNIX, but will not run
+interactively in the base Python interpreter (for reasons that are
+unclear to me). Also note that while we are illustrating this as basically
+another parallelized for loop, the individual jobs can be whatever
+calculations you want, so the *taskFun* function could change from
+job to job.
+
+```{r, python-pp, engine='python', eval=FALSE}
+```
+
+```
+[(0, 0.00030280243091597474), (1, -8.5722825540149767e-05), (2, 0.00013566614947237407), (3, 0.00061310818505479474), (4, -0.0004702706491795272), (5, 0.00024515486966970537), (6, -0.00017472300458822845), (7, -0.00025050095623507584), (8, -0.00033399772183492841), (9, -0.00049137138871004158), (10, 0.00029251318047107422), (11, 1.1956375483643322e-05), (12, -0.00010810414999124078), (13, 0.00015533121727716678), (14, -0.00092143784872822018), (15, -7.4020047531168942e-05), (16, -0.00027179897723462343), (17, -0.00020500359099047446), (18, 5.0102720605584639e-05), (19, -0.00031948846032527046), (20, -5.4961570167677311e-05), (21, -0.00057477384497516828), (22, 0.00035571929916218195), (23, 0.0003172760600221845), (24, -3.9757431343687736e-05), (25, 0.00037903275195759294), (26, -0.00010435497860874407), (27, 0.0001701626336006962), (28, -0.00069358450543517865), (29, 0.00067886194920371693), (30, -0.00051310981441539557), (31, -3.0022955955111069e-05), (32, -0.00063590672702952002), (33, -0.00031966078315322541), (34, -0.00015649509164027703), (35, 0.00028376009875884391), (36, 0.00018534703816611961), (37, -0.00021821998172858934), (38, 8.0842394421238762e-05), (39, -0.00014637870897851111)]
+```
+
+### *multiprocessing* package
+
+Here we'll use the *Pool.map* method
+to iterate in a parallelized fashion, as the Python analog to *foreach*
+or *parfor*. *Pool.map* only supports having a single
+argument to the function being used, so we'll use list of tuples,
+and pass each tuple as the argument. 
+
+```{r, python-mp, engine='python', eval=TRUE}
+```
+
 
 ## More advanced use of *OpenMP* in C
 
