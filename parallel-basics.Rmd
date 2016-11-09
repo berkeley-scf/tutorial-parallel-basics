@@ -19,7 +19,7 @@ This tutorial covers basic strategies for using parallel processing in R, Python
 
 In the future, a screencast of the material may accompany this document.
 
-We'll use a virtual machine developed here at Berkeley, [the Berkeley Common Environment (BCE)](http://bce.berkeley.edu). BCE is a virtual Linux machine - basically it is a Linux computer that you can run within your own computer, regardless of whether you are using Windows, Mac, or Linux. This provides a common environment so that things behave the same for all of us. Assuming you have multiple cores on your physical machine, you can enable use of multiple cores within BCE by going to `Settings -> System -> Processor` and changing the number of processors to more than 1. (You may also want to increase the memory allocated to the VM.) Note that if you are using a version of BCE before BCE-fall-2015 you may need to install some additional packages using the *add-parallel-tools.sh* script available at http://bce.berkeley.edu/downloads.html. However, you may also be able to work through this material on your own computer provided you are able install the software used here. 
+We'll use a virtual machine developed here at Berkeley, [the Berkeley Common Environment (BCE)](http://bce.berkeley.edu). BCE is a virtual Linux machine - basically it is a Linux computer that you can run within your own computer, regardless of whether you are using Windows, Mac, or Linux. This provides a common environment so that things behave the same for all of us. Assuming you have multiple cores on your physical machine, you can enable use of multiple cores within BCE by going to `Settings -> System -> Processor` and changing the number of processors to more than 1. (You may also want to increase the memory allocated to the VM.)  However, you may also be able to work through this material on your own computer provided you are able install the software used here. 
 
 This tutorial assumes you have a working knowledge of either R, Python, Matlab, or C. 
 
@@ -90,9 +90,9 @@ Parallel programming for distributed memory parallelism requires passing
 messages between the different nodes. The standard protocol for doing
 this is MPI, of which there are various versions, including *openMPI*.
 
-The R package *Rmpi* implements MPI in R. The *pbd* packages for R also implement MPI as well as distributed linear algebra (linear algebra calculations across nodes). 
+The R package *Rmpi* implements MPI in R. The *pbd* packages for R also implement MPI as well as distributed linear algebra (linear algebra calculations across nodes). In addition, there are various ways to do simple parallelization of multiple computational tasks (across multiple nodes) that use MPI and other tools on the back-end without users needing to understand them.
 
-Python has a package *mpi4py* that allows use of MPI within Python.
+Python has a package *mpi4py* that allows use of MPI within Python. And the iPython parallel tools allow one to do simple parallelization of multiple computational tasks across multiple nodes (as do other Python packages as well).
 
 Matlab has its own system for distributed computation, called the Distributed Computing Server (DCS), requiring additional licensing above the standard Matlab installation. 
 
@@ -138,7 +138,7 @@ program is linked against the threaded BLAS installed on your machine and provid
 OMP_NUM_THREADS is not set to one. (Macs make use of
 VECLIB_MAXIMUM_THREADS rather than OMP_NUM_THREADS.)
 
-On BCE, both R and (to some degree) Python are linked against OpenBLAS as of BCE-fall-2015. (Note: for BCE-2015-spring, you need to run the add-on script *add-parallel-tools.sh* (see Section 0) to install OpenBLAS and link R against it; however  this will not link Python against OpenBLAS.)
+On BCE, both R and (to some degree) Python are linked against OpenBLAS as of BCE-fall-2015. 
 
 
 ## 2.2) Using threading 
@@ -242,16 +242,17 @@ each process to a single thread).
 ### 2.4.2) Conflict between openBLAS and some parallel functionality in R
 
 There are conflicts between forking in R and threaded BLAS that in
-some cases affect 
+some cases have affected:
+
 - *foreach* (when using the *parallel* (and *multicore*) backends),
 - *mclapply*, and
 - *parLapply* and *parSapply* (only if *cluster* is set up with forking -- not the default).
 
 The result is that if linear algebra is used within your parallel
-code, R hangs. This affects (under somewhat different circumstances)
-both ACML and openBLAS.
+code, R hangs. This has affected both openBLAS and ACML in the past, 
+though it may not affect current versions of these software.
 
-To address this, before running an R job that does linear algebra,
+If you find your R session hanging, before running an R job that does linear algebra,
 you can set OMP_NUM_THREADS to 1 to prevent the BLAS from doing
 threaded calculations. Alternatively, you can use MPI as the parallel
 backend (via *doMPI* in place of *doParallel*).
