@@ -216,7 +216,7 @@ hr {
 
 <p>In the future, a screencast of the material may accompany this document.</p>
 
-<p>We&#39;ll use a virtual machine developed here at Berkeley, <a href="http://bce.berkeley.edu">the Berkeley Common Environment (BCE)</a>. BCE is a virtual Linux machine - basically it is a Linux computer that you can run within your own computer, regardless of whether you are using Windows, Mac, or Linux. This provides a common environment so that things behave the same for all of us. Assuming you have multiple cores on your physical machine, you can enable use of multiple cores within BCE by going to <code>Settings -&gt; System -&gt; Processor</code> and changing the number of processors to more than 1. (You may also want to increase the memory allocated to the VM.) Note that if you are using a version of BCE before BCE-fall-2015 you may need to install some additional packages using the <em>add-parallel-tools.sh</em> script available at <a href="http://bce.berkeley.edu/downloads.html">http://bce.berkeley.edu/downloads.html</a>. However, you may also be able to work through this material on your own computer provided you are able install the software used here. </p>
+<p>We&#39;ll use a virtual machine developed here at Berkeley, <a href="http://bce.berkeley.edu">the Berkeley Common Environment (BCE)</a>. BCE is a virtual Linux machine - basically it is a Linux computer that you can run within your own computer, regardless of whether you are using Windows, Mac, or Linux. This provides a common environment so that things behave the same for all of us. Assuming you have multiple cores on your physical machine, you can enable use of multiple cores within BCE by going to <code>Settings -&gt; System -&gt; Processor</code> and changing the number of processors to more than 1. (You may also want to increase the memory allocated to the VM.)  However, you may also be able to work through this material on your own computer provided you are able install the software used here. </p>
 
 <p>This tutorial assumes you have a working knowledge of either R, Python, Matlab, or C. </p>
 
@@ -292,9 +292,9 @@ rather than as multiple processes. </p>
 messages between the different nodes. The standard protocol for doing
 this is MPI, of which there are various versions, including <em>openMPI</em>.</p>
 
-<p>The R package <em>Rmpi</em> implements MPI in R. The <em>pbd</em> packages for R also implement MPI as well as distributed linear algebra (linear algebra calculations across nodes). </p>
+<p>The R package <em>Rmpi</em> implements MPI in R. The <em>pbd</em> packages for R also implement MPI as well as distributed linear algebra (linear algebra calculations across nodes). In addition, there are various ways to do simple parallelization of multiple computational tasks (across multiple nodes) that use MPI and other tools on the back-end without users needing to understand them.</p>
 
-<p>Python has a package <em>mpi4py</em> that allows use of MPI within Python.</p>
+<p>Python has a package <em>mpi4py</em> that allows use of MPI within Python. And the iPython parallel tools allow one to do simple parallelization of multiple computational tasks across multiple nodes (as do other Python packages as well).</p>
 
 <p>Matlab has its own system for distributed computation, called the Distributed Computing Server (DCS), requiring additional licensing above the standard Matlab installation. </p>
 
@@ -342,7 +342,7 @@ program is linked against the threaded BLAS installed on your machine and provid
 OMP_NUM_THREADS is not set to one. (Macs make use of
 VECLIB_MAXIMUM_THREADS rather than OMP_NUM_THREADS.)</p>
 
-<p>On BCE, both R and (to some degree) Python are linked against OpenBLAS as of BCE-fall-2015. (Note: for BCE-2015-spring, you need to run the add-on script <em>add-parallel-tools.sh</em> (see Section 0) to install OpenBLAS and link R against it; however  this will not link Python against OpenBLAS.)</p>
+<p>On BCE, both R and (to some degree) Python are linked against OpenBLAS as of BCE-fall-2015. </p>
 
 <h2>2.2) Using threading</h2>
 
@@ -465,7 +465,7 @@ each process to a single thread). </p>
 <h3>2.4.2) Conflict between openBLAS and some parallel functionality in R</h3>
 
 <p>There are conflicts between forking in R and threaded BLAS that in
-some cases affect </p>
+some cases have affected:</p>
 
 <ul>
 <li><em>foreach</em> (when using the <em>parallel</em> (and <em>multicore</em>) backends),</li>
@@ -474,10 +474,10 @@ some cases affect </p>
 </ul>
 
 <p>The result is that if linear algebra is used within your parallel
-code, R hangs. This affects (under somewhat different circumstances)
-both ACML and openBLAS.</p>
+code, R hangs. This has affected both openBLAS and ACML in the past, 
+though it may not affect current versions of these software.</p>
 
-<p>To address this, before running an R job that does linear algebra,
+<p>If you find your R session hanging, before running an R job that does linear algebra,
 you can set OMP_NUM_THREADS to 1 to prevent the BLAS from doing
 threaded calculations. Alternatively, you can use MPI as the parallel
 backend (via <em>doMPI</em> in place of <em>doParallel</em>).
@@ -532,8 +532,23 @@ a distributed memory setting, but that is beyond the scope of this document.</p>
 <pre><code class="r"># library(multicore); library(doMC) # alternative to parallel/doParallel
 # library(Rmpi); library(doMPI) # to use Rmpi as the back-end
 
+source(&#39;rf.R&#39;)  # loads in data and looFit()
+</code></pre>
 
-taskFun &lt;- function(){
+<pre><code>## Warning in file(filename, &quot;r&quot;, encoding = encoding): cannot open file
+## &#39;rf.R&#39;: No such file or directory
+</code></pre>
+
+<pre><code>## Error in file(filename, &quot;r&quot;, encoding = encoding): cannot open the connection
+</code></pre>
+
+<pre><code class="r">looFit
+</code></pre>
+
+<pre><code>## Error in eval(expr, envir, enclos): object &#39;looFit&#39; not found
+</code></pre>
+
+<pre><code class="r">taskFun &lt;- function(){
     mn &lt;- mean(rnorm(10000000))
     return(mn)
 }
@@ -542,21 +557,21 @@ registerDoParallel(nCores)
 # registerDoMC(nCores) # alternative to registerDoParallel
 # cl &lt;- startMPIcluster(nCores); registerDoMPI(cl) # when using Rmpi as the back-end
 
-out &lt;- foreach(i = 1:30, .combine = c) %dopar% {
+result &lt;- foreach(i = 1:30) %dopar% {
     cat(&#39;Starting &#39;, i, &#39;th job.\n&#39;, sep = &#39;&#39;)
-    outSub &lt;- taskFun()
+    output &lt;- looFit(i, Y, X)
     cat(&#39;Finishing &#39;, i, &#39;th job.\n&#39;, sep = &#39;&#39;)
-    outSub # this will become part of the out object
+    output # this will become part of the out object
 }
-print(out)
 </code></pre>
 
-<pre><code>##  [1] -1.598825e-04  2.882180e-05 -3.259267e-04 -2.459858e-04 -6.895254e-05
-##  [6] -8.434503e-05 -9.131569e-05 -2.727020e-05 -1.946554e-04  2.193390e-05
-## [11] -1.747705e-04  2.311579e-04  5.776101e-05  2.089880e-04 -4.866150e-04
-## [16]  3.129296e-05  5.480037e-05  4.162630e-04  3.417353e-04 -3.006129e-04
-## [21]  6.454809e-05 -2.638304e-04 -9.425558e-05  5.916829e-04  1.820595e-04
-## [26] -4.116495e-04 -5.914842e-04  3.725898e-04  4.315482e-04  5.051632e-05
+<pre><code>## Error in {: task 1 failed - &quot;could not find function &quot;looFit&quot;&quot;
+</code></pre>
+
+<pre><code class="r">print(result)
+</code></pre>
+
+<pre><code>## Error in print(result): object &#39;result&#39; not found
 </code></pre>
 
 <p>(Note that the printed statements from <code>cat</code> are not showing up in the creation of this document but should show if you run the code.)</p>
@@ -587,32 +602,40 @@ and communicating via a technology called sockets.</p>
 nCores &lt;- 4  # to set manually 
 cl &lt;- makeCluster(nCores) 
 
-nSims &lt;- 60
-input &lt;- seq_len(nSims) # same as 1:nSims but more robust
-taskFun &lt;- function(i){
-    mn &lt;- mean(rnorm(1000000))
-    return(mn)
-}
-# clusterExport(cl, c(&#39;x&#39;, &#39;y&#39;)) # if the processes need objects (x and y, here) from the master&#39;s workspace
+n &lt;- 60
+input &lt;- seq_len(n) # same as 1:n but more robust
+
+# clusterExport(cl, c(&#39;x&#39;, &#39;y&#39;)) # if the processes need objects
+# from master&#39;s workspace (not needed here as no global vars used)
+
+# need to load randomForest package within function
+# when using par{L,S}apply
 system.time(
-    res &lt;- parSapply(cl, input, taskFun)
+    res &lt;- parSapply(cl, input, looFit, Y, X, TRUE)
 )
 </code></pre>
 
-<pre><code>##    user  system elapsed 
-##   0.004   0.000   1.838
+<pre><code>## Error in match.fun(FUN): object &#39;looFit&#39; not found
+</code></pre>
+
+<pre><code>## Timing stopped at: 0.004 0 0.001
 </code></pre>
 
 <pre><code class="r">system.time(
-    res2 &lt;- sapply(input, taskFun)
+    res2 &lt;- sapply(input, looFit, Y, X)
 )
 </code></pre>
 
-<pre><code>##    user  system elapsed 
-##   4.892   0.040   4.929
+<pre><code>## Error in match.fun(FUN): object &#39;looFit&#39; not found
 </code></pre>
 
-<pre><code class="r">res &lt;- parLapply(cl, input, taskFun)
+<pre><code>## Timing stopped at: 0 0 0
+</code></pre>
+
+<pre><code class="r">res &lt;- parLapply(cl, input, looFit, Y, X, TRUE)
+</code></pre>
+
+<pre><code>## Error in argfun(start + i - 1L): object &#39;looFit&#39; not found
 </code></pre>
 
 <p>Here the miniscule user time is probably because the time spent in the worker processes is not counted at the level of the overall master process that dispatches the workers.</p>
@@ -622,12 +645,16 @@ system.time(
 <p><em>mclapply</em> is an alternative that uses forking to start up the worker processes.</p>
 
 <pre><code class="r">system.time(
-    res &lt;- mclapply(input, taskFun, mc.cores = nCores) 
+    res &lt;- mclapply(input, looFit, Y, X, mc.cores = nCores) 
 )
 </code></pre>
 
+<pre><code>## Warning in mclapply(input, looFit, Y, X, mc.cores = nCores): all scheduled
+## cores encountered errors in user code
+</code></pre>
+
 <pre><code>##    user  system elapsed 
-##   9.808   0.124   2.097
+##   0.004   0.024   0.011
 </code></pre>
 
 <p>Note that some R packages can directly interact with the parallelization
@@ -644,77 +671,78 @@ can make use of the <em>parallel</em> package directly. </p>
 
 <h2>3.2) Parallel looping in Python</h2>
 
-<p>There are a number of approaches to parallelization in Python. We&#39;ll
-cover two of the basic approaches here. </p>
+<p>I&#39;ll cover iPython parallel functionality, which allows one to parallelize on a single machine (discussed here) or across multiple machines (see the tutorial on distributed memory parallelization). There are a variety of other approaches one could use, of which I discuss two (the <em>pp</em> and <em>multiprocessing</em> packages) in the Appendix.</p>
 
-<h3>3.2.1) <em>pp</em> package</h3>
+<p>First we need to start our worker engines.</p>
 
-<p>Here we create a server object and submit jobs to the server object,
-which manages the farming out of the tasks. Note that this will run
-interactively in iPython or as a script from UNIX, but will not run
-interactively in the base Python interpreter (for reasons that are
-unclear to me). Also note that while we are illustrating this as basically
-another parallelized for loop, the individual jobs can be whatever
-calculations you want, so the <em>taskFun</em> function could change from
-job to job.</p>
-
-<pre><code class="python">import numpy
-import pp
-
-nCores = 4
-job_server = pp.Server(ncpus = nCores, secret = &#39;mysecretphrase&#39;)
-# set &#39;secret&#39; to some passphrase (you need to set it but 
-#   what it is should not be crucial)
-job_server.get_ncpus()
-
-nSmp = 10000000
-m = 40
-def taskFun(i, n):
-    numpy.random.seed(i)
-    return (i, numpy.mean(numpy.random.normal(0, 1, n)))
-
-# create list of tuples to iterate over
-inputs = [(i, nSmp) for i in xrange(m)]
-# submit and run jobs using list comprehension
-jobs = [job_server.submit(taskFun, invalue, modules = (&#39;numpy&#39;,)) for invalue in inputs]
-# collect results (will have to wait for longer tasks to finish)
-results = [job() for job in jobs]
-print(results)
-job_server.destroy()
+<pre><code class="bash">ipcluster start -n 4
+sleep 45
 </code></pre>
 
-<pre><code>[(0, 0.00030280243091597474), (1, -8.5722825540149767e-05), (2, 0.00013566614947237407), (3, 0.00061310818505479474), (4, -0.0004702706491795272), (5, 0.00024515486966970537), (6, -0.00017472300458822845), (7, -0.00025050095623507584), (8, -0.00033399772183492841), (9, -0.00049137138871004158), (10, 0.00029251318047107422), (11, 1.1956375483643322e-05), (12, -0.00010810414999124078), (13, 0.00015533121727716678), (14, -0.00092143784872822018), (15, -7.4020047531168942e-05), (16, -0.00027179897723462343), (17, -0.00020500359099047446), (18, 5.0102720605584639e-05), (19, -0.00031948846032527046), (20, -5.4961570167677311e-05), (21, -0.00057477384497516828), (22, 0.00035571929916218195), (23, 0.0003172760600221845), (24, -3.9757431343687736e-05), (25, 0.00037903275195759294), (26, -0.00010435497860874407), (27, 0.0001701626336006962), (28, -0.00069358450543517865), (29, 0.00067886194920371693), (30, -0.00051310981441539557), (31, -3.0022955955111069e-05), (32, -0.00063590672702952002), (33, -0.00031966078315322541), (34, -0.00015649509164027703), (35, 0.00028376009875884391), (36, 0.00018534703816611961), (37, -0.00021821998172858934), (38, 8.0842394421238762e-05), (39, -0.00014637870897851111)]
+<pre><code>## bash: ipcluster: command not found
 </code></pre>
 
-<h3>3.2.2) <em>multiprocessing</em> package</h3>
+<p>Here we&#39;ll generate some fake data to fit a random forest model to and then use leave-one-out cross-validation to assess the model, parallelizing over the individual held-out observations.</p>
 
-<p>Here we&#39;ll use the <em>Pool.map</em> method
-to iterate in a parallelized fashion, as the Python analog to <em>foreach</em>
-or <em>parfor</em>. <em>Pool.map</em> only supports having a single
-argument to the function being used, so we&#39;ll use list of tuples,
-and pass each tuple as the argument. </p>
+<pre><code class="python">import numpy as np
+np.random.seed(0)
+n = 500
+p = 50
+X = np.random.normal(0, 1, size = (n, p))
+Y = X[: , 0] + pow(abs(X[:,1] * X[:,2]), 0.5) + X[:,1] - X[:,2] + np.random.normal(0, 1, n)
 
-<pre><code class="python">import multiprocessing as mp
-import numpy as np
+def looFit(index, Ylocal, Xlocal):
+    rf = rfr(n_estimators=100)
+    fitted = rf.fit(np.delete(Xlocal, index, axis = 0), np.delete(Ylocal, index))
+    pred = rf.predict(np.array([Xlocal[index, :]]))
+    return(pred[0])
 
-nCores = 4 # to set manually
+from ipyparallel import Client
+c = Client()
+c.ids
 
-nSmp = 10000000
-m = 40
-def taskFun(input):
-    np.random.seed(input[0])
-    return np.mean(np.random.normal(0, 1, input[1]))
+dview = c[:]
+dview.block = True
+dview.apply(lambda : &quot;Hello, World&quot;)
 
-# create list of tuples to iterate over, since
-# Pool.map() does not support multiple arguments
-inputs = [(i, nSmp) for i in xrange(m)]
-inputs[0:2]
-pool = mp.Pool(processes = nCores)
-results = pool.map(taskFun, inputs)
-print(results)
+lview = c.load_balanced_view()
+lview.block = True
+
+dview.execute(&#39;from sklearn.ensemble import RandomForestRegressor as rfr&#39;)
+dview.execute(&#39;import numpy as np&#39;)
+mydict = dict(X = X, Y = Y, looFit = looFit)
+dview.push(mydict)
+
+nSub = 50  # for illustration only do a subset
+
+# need a wrapper function because map() only operates on one argument
+def wrapper(i):
+    return(looFit(i, Y, X))
+
+import time
+time.time()
+pred = lview.map(wrapper, range(nSub))
+time.time()
+
+pred[0:10]
+
+# import pylab
+# import matplotlib.pyplot as plt
+# plt.plot(Y, pred, &#39;.&#39;)
+# pylab.show()
 </code></pre>
 
-<pre><code>## [0.00030280243091597474, -8.5722825540149767e-05, 0.00013566614947237407, 0.00061310818505479474, -0.0004702706491795272, 0.00024515486966970537, -0.00017472300458822845, -0.00025050095623507584, -0.00033399772183492841, -0.00049137138871004158, 0.00029251318047107422, 1.1956375483643322e-05, -0.00010810414999124078, 0.00015533121727716678, -0.00092143784872822018, -7.4020047531168942e-05, -0.00027179897723462343, -0.00020500359099047446, 5.0102720605584639e-05, -0.00031948846032527046, -5.4961570167677311e-05, -0.00057477384497516828, 0.00035571929916218195, 0.0003172760600221845, -3.9757431343687736e-05, 0.00037903275195759294, -0.00010435497860874407, 0.0001701626336006962, -0.00069358450543517865, 0.00067886194920371693, -0.00051310981441539557, -3.0022955955111069e-05, -0.00063590672702952002, -0.00031966078315322541, -0.00015649509164027703, 0.00028376009875884391, 0.00018534703816611961, -0.00021821998172858934, 8.0842394421238762e-05, -0.00014637870897851111]
+<pre><code>## Traceback (most recent call last):
+##   File &quot;&lt;string&gt;&quot;, line 14, in &lt;module&gt;
+## ImportError: No module named ipyparallel
+</code></pre>
+
+<p>Finally we stop the worker engines:</p>
+
+<pre><code class="bash">ipcluster stop
+</code></pre>
+
+<pre><code>## Error in running command bash
 </code></pre>
 
 <h2>3.3) Basic shared memory parallel programming in Matlab</h2>
@@ -1108,20 +1136,20 @@ system.time({
 })
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 8 (&lt;-localhost:11268)
+<pre><code>## Warning: closing unused connection 8 (&lt;-localhost:11138)
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 7 (&lt;-localhost:11268)
+<pre><code>## Warning: closing unused connection 7 (&lt;-localhost:11138)
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 6 (&lt;-localhost:11268)
+<pre><code>## Warning: closing unused connection 6 (&lt;-localhost:11138)
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 5 (&lt;-localhost:11268)
+<pre><code>## Warning: closing unused connection 5 (&lt;-localhost:11138)
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   1.556   0.036   2.210
+##   1.532   0.048   2.172
 </code></pre>
 
 <pre><code class="r">system.time({
@@ -1131,7 +1159,7 @@ system.time({
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   2.752   0.000   2.753
+##   2.804   0.016   2.822
 </code></pre>
 
 <p>Note that <em>mcparallel</em> also allows the use of the <em>mc.set.seed</em>
@@ -1189,7 +1217,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   4.692   0.344   1.575
+##   3.776   0.308   1.517
 </code></pre>
 
 <pre><code class="r">system.time(
@@ -1198,7 +1226,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   3.788   0.016   3.808
+##   3.740   0.016   3.758
 </code></pre>
 
 <h2>Manually parallelizing individual tasks in Matlab</h2>
@@ -1272,6 +1300,78 @@ output3 = fetchOutputs(jobt3);
 output4 = fetchOutputs(jobt4);
 
 delete(pool);
+</code></pre>
+
+<h2>Other approaches to parallelization in Python</h2>
+
+<h3><em>pp</em> package</h3>
+
+<p>Here we create a server object and submit jobs to the server object,
+which manages the farming out of the tasks. Note that this will run
+interactively in iPython or as a script from UNIX, but will not run
+interactively in the base Python interpreter (for reasons that are
+unclear to me). Also note that while we are illustrating this as basically
+another parallelized for loop, the individual jobs can be whatever
+calculations you want, so the <em>taskFun</em> function could change from
+job to job.</p>
+
+<pre><code class="python">import numpy
+import pp
+
+nCores = 4
+job_server = pp.Server(ncpus = nCores, secret = &#39;mysecretphrase&#39;)
+# set &#39;secret&#39; to some passphrase (you need to set it but 
+#   what it is should not be crucial)
+job_server.get_ncpus()
+
+nSmp = 10000000
+m = 40
+def taskFun(i, n):
+    numpy.random.seed(i)
+    return (i, numpy.mean(numpy.random.normal(0, 1, n)))
+
+# create list of tuples to iterate over
+inputs = [(i, nSmp) for i in xrange(m)]
+# submit and run jobs using list comprehension
+jobs = [job_server.submit(taskFun, invalue, modules = (&#39;numpy&#39;,)) for invalue in inputs]
+# collect results (will have to wait for longer tasks to finish)
+results = [job() for job in jobs]
+print(results)
+job_server.destroy()
+</code></pre>
+
+<pre><code>[(0, 0.00030280243091597474), (1, -8.5722825540149767e-05), (2, 0.00013566614947237407), (3, 0.00061310818505479474), (4, -0.0004702706491795272), (5, 0.00024515486966970537), (6, -0.00017472300458822845), (7, -0.00025050095623507584), (8, -0.00033399772183492841), (9, -0.00049137138871004158), (10, 0.00029251318047107422), (11, 1.1956375483643322e-05), (12, -0.00010810414999124078), (13, 0.00015533121727716678), (14, -0.00092143784872822018), (15, -7.4020047531168942e-05), (16, -0.00027179897723462343), (17, -0.00020500359099047446), (18, 5.0102720605584639e-05), (19, -0.00031948846032527046), (20, -5.4961570167677311e-05), (21, -0.00057477384497516828), (22, 0.00035571929916218195), (23, 0.0003172760600221845), (24, -3.9757431343687736e-05), (25, 0.00037903275195759294), (26, -0.00010435497860874407), (27, 0.0001701626336006962), (28, -0.00069358450543517865), (29, 0.00067886194920371693), (30, -0.00051310981441539557), (31, -3.0022955955111069e-05), (32, -0.00063590672702952002), (33, -0.00031966078315322541), (34, -0.00015649509164027703), (35, 0.00028376009875884391), (36, 0.00018534703816611961), (37, -0.00021821998172858934), (38, 8.0842394421238762e-05), (39, -0.00014637870897851111)]
+</code></pre>
+
+<h3><em>multiprocessing</em> package</h3>
+
+<p>Here we&#39;ll use the <em>Pool.map</em> method
+to iterate in a parallelized fashion, as the Python analog to <em>foreach</em>
+or <em>parfor</em>. <em>Pool.map</em> only supports having a single
+argument to the function being used, so we&#39;ll use list of tuples,
+and pass each tuple as the argument. </p>
+
+<pre><code class="python">import multiprocessing as mp
+import numpy as np
+
+nCores = 4 # to set manually
+
+nSmp = 10000000
+m = 40
+def taskFun(input):
+    np.random.seed(input[0])
+    return np.mean(np.random.normal(0, 1, input[1]))
+
+# create list of tuples to iterate over, since
+# Pool.map() does not support multiple arguments
+inputs = [(i, nSmp) for i in xrange(m)]
+inputs[0:2]
+pool = mp.Pool(processes = nCores)
+results = pool.map(taskFun, inputs)
+print(results)
+</code></pre>
+
+<pre><code>## [0.00030280243091597474, -8.5722825540149767e-05, 0.00013566614947237407, 0.00061310818505479474, -0.0004702706491795272, 0.00024515486966970537, -0.00017472300458822845, -0.00025050095623507584, -0.00033399772183492841, -0.00049137138871004158, 0.00029251318047107422, 1.1956375483643322e-05, -0.00010810414999124078, 0.00015533121727716678, -0.00092143784872822018, -7.4020047531168942e-05, -0.00027179897723462343, -0.00020500359099047446, 5.0102720605584639e-05, -0.00031948846032527046, -5.4961570167677311e-05, -0.00057477384497516828, 0.00035571929916218195, 0.0003172760600221845, -3.9757431343687736e-05, 0.00037903275195759294, -0.00010435497860874407, 0.0001701626336006962, -0.00069358450543517865, 0.00067886194920371693, -0.00051310981441539557, -3.0022955955111069e-05, -0.00063590672702952002, -0.00031966078315322541, -0.00015649509164027703, 0.00028376009875884391, 0.00018534703816611961, -0.00021821998172858934, 8.0842394421238762e-05, -0.00014637870897851111]
 </code></pre>
 
 <h2>More advanced use of <em>OpenMP</em> in C</h2>
