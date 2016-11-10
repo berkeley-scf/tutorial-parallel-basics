@@ -358,19 +358,19 @@ I'll cover iPython parallel functionality, which allows one to parallelize on a 
 
 First we need to start our worker engines.
 
-```{r, ipython-parallel-setup, engine='bash', eval=TRUE}
+```{r, ipython-parallel-setup, engine='bash', eval=FALSE}
 ipcluster start -n 4 &
 sleep 45
 ```
 
 Here we'll generate some fake data to fit a random forest model to and then use leave-one-out cross-validation to assess the model, parallelizing over the individual held-out observations.
 
-```{r, ipython-parallel, engine='python', eval=TRUE}
+```{r, ipython-parallel, engine='python', eval=FALSE}
 ```
 
 Finally we stop the worker engines:
 
-```{r, ipython-parallel-shutdown, engine='bash', eval=TRUE}
+```{r, ipython-parallel-shutdown, engine='bash', eval=FALSE}
 ipcluster stop
 ```
 
