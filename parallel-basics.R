@@ -32,22 +32,20 @@ source('rf.R')  # loads in data and looFit()
 
 looFit
 
-taskFun <- function(){
-	mn <- mean(rnorm(10000000))
-	return(mn)
-}
 nCores <- 4  # to set manually
 registerDoParallel(nCores) 
 # registerDoMC(nCores) # alternative to registerDoParallel
 # cl <- startMPIcluster(nCores); registerDoMPI(cl) # when using Rmpi as the back-end
 
-result <- foreach(i = 1:30) %dopar% {
+nSub <- 30  # do only first 30 for illustration
+
+result <- foreach(i = 1:nSub) %dopar% {
 	cat('Starting ', i, 'th job.\n', sep = '')
 	output <- looFit(i, Y, X)
 	cat('Finishing ', i, 'th job.\n', sep = '')
 	output # this will become part of the out object
 }
-print(result)
+print(result[1:5])
 
 ## @knitr parallel_lsApply
 

@@ -50,7 +50,7 @@ time.time()
 pred = lview.map(wrapper, range(nSub))
 time.time()
 
-pred[0:10]
+print(pred[0:10])
 
 # import pylab
 # import matplotlib.pyplot as plt
