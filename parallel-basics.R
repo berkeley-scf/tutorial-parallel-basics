@@ -53,8 +53,8 @@ library(parallel)
 nCores <- 4  # to set manually 
 cl <- makeCluster(nCores) 
 
-n <- 60
-input <- seq_len(n) # same as 1:n but more robust
+nSub <- 30
+input <- seq_len(nSub) # same as 1:nSub but more robust
 
 # clusterExport(cl, c('x', 'y')) # if the processes need objects
 # from master's workspace (not needed here as no global vars used)
