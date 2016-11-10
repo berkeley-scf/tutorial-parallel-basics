@@ -359,7 +359,7 @@ I'll cover iPython parallel functionality, which allows one to parallelize on a 
 First we need to start our worker engines.
 
 ```{r, ipython-parallel-setup, engine='bash', eval=TRUE}
-ipcluster start -n 4
+ipcluster start -n 4 &
 sleep 45
 ```
 

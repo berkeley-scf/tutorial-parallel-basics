@@ -535,17 +535,21 @@ a distributed memory setting, but that is beyond the scope of this document.</p>
 source(&#39;rf.R&#39;)  # loads in data and looFit()
 </code></pre>
 
-<pre><code>## Warning in file(filename, &quot;r&quot;, encoding = encoding): cannot open file
-## &#39;rf.R&#39;: No such file or directory
-</code></pre>
-
-<pre><code>## Error in file(filename, &quot;r&quot;, encoding = encoding): cannot open the connection
+<pre><code>## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.
 </code></pre>
 
 <pre><code class="r">looFit
 </code></pre>
 
-<pre><code>## Error in eval(expr, envir, enclos): object &#39;looFit&#39; not found
+<pre><code>## function (i, Y, X, loadLib = FALSE) 
+## {
+##     if (loadLib) 
+##         library(randomForest)
+##     out &lt;- randomForest(y = Y[-i], x = X[-i, ], xtest = X[i, 
+##         ])
+##     return(out$test$predicted)
+## }
 </code></pre>
 
 <pre><code class="r">taskFun &lt;- function(){
@@ -563,15 +567,128 @@ result &lt;- foreach(i = 1:30) %dopar% {
     cat(&#39;Finishing &#39;, i, &#39;th job.\n&#39;, sep = &#39;&#39;)
     output # this will become part of the out object
 }
+print(result)
 </code></pre>
 
-<pre><code>## Error in {: task 1 failed - &quot;could not find function &quot;looFit&quot;&quot;
-</code></pre>
-
-<pre><code class="r">print(result)
-</code></pre>
-
-<pre><code>## Error in print(result): object &#39;result&#39; not found
+<pre><code>## [[1]]
+##        1 
+## 1.483754 
+## 
+## [[2]]
+##         2 
+## 0.2280212 
+## 
+## [[3]]
+##        3 
+## 1.036331 
+## 
+## [[4]]
+##          4 
+## -0.2445979 
+## 
+## [[5]]
+##          5 
+## -0.2846419 
+## 
+## [[6]]
+##        6 
+## 1.607339 
+## 
+## [[7]]
+##        7 
+## 2.818471 
+## 
+## [[8]]
+##       8 
+## 1.15594 
+## 
+## [[9]]
+##        9 
+## 1.898003 
+## 
+## [[10]]
+##      10 
+## 1.72635 
+## 
+## [[11]]
+##       11 
+## 3.162141 
+## 
+## [[12]]
+##       12 
+## 0.119762 
+## 
+## [[13]]
+##         13 
+## -0.1698103 
+## 
+## [[14]]
+##        14 
+## 0.5921017 
+## 
+## [[15]]
+##       15 
+## 1.690919 
+## 
+## [[16]]
+##       16 
+## 1.867135 
+## 
+## [[17]]
+##         17 
+## -0.2304606 
+## 
+## [[18]]
+##       18 
+## 1.402737 
+## 
+## [[19]]
+##       19 
+## -1.76034 
+## 
+## [[20]]
+##          20 
+## -0.06542506 
+## 
+## [[21]]
+##       21 
+## 1.549663 
+## 
+## [[22]]
+##       22 
+## 2.087336 
+## 
+## [[23]]
+##         23 
+## -0.7583381 
+## 
+## [[24]]
+##        24 
+## 0.4717072 
+## 
+## [[25]]
+##      25 
+## 3.01275 
+## 
+## [[26]]
+##          26 
+## -0.08669195 
+## 
+## [[27]]
+##        27 
+## 0.6163859 
+## 
+## [[28]]
+##       28 
+## 1.591931 
+## 
+## [[29]]
+##       29 
+## 1.555096 
+## 
+## [[30]]
+##         30 
+## -0.4023439
 </code></pre>
 
 <p>(Note that the printed statements from <code>cat</code> are not showing up in the creation of this document but should show if you run the code.)</p>
@@ -615,10 +732,8 @@ system.time(
 )
 </code></pre>
 
-<pre><code>## Error in match.fun(FUN): object &#39;looFit&#39; not found
-</code></pre>
-
-<pre><code>## Timing stopped at: 0.004 0 0.001
+<pre><code>##    user  system elapsed 
+##   0.004   0.004  36.054
 </code></pre>
 
 <pre><code class="r">system.time(
@@ -626,16 +741,11 @@ system.time(
 )
 </code></pre>
 
-<pre><code>## Error in match.fun(FUN): object &#39;looFit&#39; not found
-</code></pre>
-
-<pre><code>## Timing stopped at: 0 0 0
+<pre><code>##    user  system elapsed 
+## 113.496   0.000 113.505
 </code></pre>
 
 <pre><code class="r">res &lt;- parLapply(cl, input, looFit, Y, X, TRUE)
-</code></pre>
-
-<pre><code>## Error in argfun(start + i - 1L): object &#39;looFit&#39; not found
 </code></pre>
 
 <p>Here the miniscule user time is probably because the time spent in the worker processes is not counted at the level of the overall master process that dispatches the workers.</p>
@@ -649,12 +759,8 @@ system.time(
 )
 </code></pre>
 
-<pre><code>## Warning in mclapply(input, looFit, Y, X, mc.cores = nCores): all scheduled
-## cores encountered errors in user code
-</code></pre>
-
 <pre><code>##    user  system elapsed 
-##   0.004   0.024   0.011
+## 122.176   0.096  40.137
 </code></pre>
 
 <p>Note that some R packages can directly interact with the parallelization
@@ -675,11 +781,11 @@ can make use of the <em>parallel</em> package directly. </p>
 
 <p>First we need to start our worker engines.</p>
 
-<pre><code class="bash">ipcluster start -n 4
+<pre><code class="bash">ipcluster start -n 4 &amp;
 sleep 45
 </code></pre>
 
-<pre><code>## bash: ipcluster: command not found
+<pre><code>## 2016-11-09 15:56:43.266 [IPClusterStart] CRITICAL | Cluster is already running with [pid=2281]. use &quot;ipcluster stop&quot; to stop the cluster.
 </code></pre>
 
 <p>Here we&#39;ll generate some fake data to fit a random forest model to and then use leave-one-out cross-validation to assess the model, parallelizing over the individual held-out observations.</p>
@@ -732,17 +838,12 @@ pred[0:10]
 # pylab.show()
 </code></pre>
 
-<pre><code>## Traceback (most recent call last):
-##   File &quot;&lt;string&gt;&quot;, line 14, in &lt;module&gt;
-## ImportError: No module named ipyparallel
-</code></pre>
-
 <p>Finally we stop the worker engines:</p>
 
 <pre><code class="bash">ipcluster stop
 </code></pre>
 
-<pre><code>## Error in running command bash
+<pre><code>## 2016-11-09 15:57:50.638 [IPClusterStop] Stopping cluster [pid=2281] with [signal=2]
 </code></pre>
 
 <h2>3.3) Basic shared memory parallel programming in Matlab</h2>
@@ -1136,20 +1237,20 @@ system.time({
 })
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 8 (&lt;-localhost:11138)
+<pre><code>## Warning: closing unused connection 8 (&lt;-localhost:11580)
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 7 (&lt;-localhost:11138)
+<pre><code>## Warning: closing unused connection 7 (&lt;-localhost:11580)
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 6 (&lt;-localhost:11138)
+<pre><code>## Warning: closing unused connection 6 (&lt;-localhost:11580)
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 5 (&lt;-localhost:11138)
+<pre><code>## Warning: closing unused connection 5 (&lt;-localhost:11580)
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   1.532   0.048   2.172
+##   1.036   0.052   1.762
 </code></pre>
 
 <pre><code class="r">system.time({
@@ -1159,7 +1260,7 @@ system.time({
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   2.804   0.016   2.822
+##   2.808   0.008   2.819
 </code></pre>
 
 <p>Note that <em>mcparallel</em> also allows the use of the <em>mc.set.seed</em>
@@ -1217,7 +1318,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   3.776   0.308   1.517
+##   4.504   0.312   1.503
 </code></pre>
 
 <pre><code class="r">system.time(
@@ -1226,7 +1327,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   3.740   0.016   3.758
+##   3.724   0.016   3.743
 </code></pre>
 
 <h2>Manually parallelizing individual tasks in Matlab</h2>
