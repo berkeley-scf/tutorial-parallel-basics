@@ -1,6 +1,6 @@
 ## @knitr R-linalg
 
-# install.packages('RhpcBLASctl') # not installed by default on BCE
+# install.packages('RhpcBLASctl') 
 library(RhpcBLASctl)
 x <- matrix(rnorm(5000^2), 5000)
 
@@ -25,8 +25,6 @@ system.time({
 ## @knitr foreach
 
 library(doParallel)  # uses parallel package, a core R package
-# library(multicore); library(doMC) # alternative to parallel/doParallel
-# library(Rmpi); library(doMPI) # to use Rmpi as the back-end
 
 source('rf.R')  # loads in data and looFit()
 
@@ -34,8 +32,6 @@ looFit
 
 nCores <- 4  # to set manually
 registerDoParallel(nCores) 
-# registerDoMC(nCores) # alternative to registerDoParallel
-# cl <- startMPIcluster(nCores); registerDoMPI(cl) # when using Rmpi as the back-end
 
 nSub <- 30  # do only first 30 for illustration
 

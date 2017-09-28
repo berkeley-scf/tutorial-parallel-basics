@@ -58,7 +58,7 @@ hljs.initHighlightingOnLoad();
 </script>
 
 <!-- MathJax scripts -->
-<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML">
 </script>
 
 
@@ -214,9 +214,9 @@ hr {
 
 <p>This tutorial covers basic strategies for using parallel processing in R, Python, Matlab, and C on single machine in which multiple processors (cores) share memory. </p>
 
-<p>In the future, a screencast of the material may accompany this document.</p>
+<p>You should be able to replicate much of what is covered here provided you have R, Python, or Matlab installed on your computer, but some of the parallelization approaches may not work on Windows.</p>
 
-<p>We&#39;ll use a virtual machine developed here at Berkeley, <a href="http://bce.berkeley.edu">the Berkeley Common Environment (BCE)</a>. BCE is a virtual Linux machine - basically it is a Linux computer that you can run within your own computer, regardless of whether you are using Windows, Mac, or Linux. This provides a common environment so that things behave the same for all of us. Assuming you have multiple cores on your physical machine, you can enable use of multiple cores within BCE by going to <code>Settings -&gt; System -&gt; Processor</code> and changing the number of processors to more than 1. (You may also want to increase the memory allocated to the VM.)  However, you may also be able to work through this material on your own computer provided you are able install the software used here. </p>
+<p>This tutorial was developed using a virtual machine developed here at Berkeley, the <a href="http://bce.berkeley.edu">Berkeley Common Environment (BCE)</a>. BCE is a virtual Linux machine - basically it is a Linux computer that you can run within your own computer, regardless of whether you are using Windows, Mac, or Linux. This provides a common environment so that things behave the same for all of us. You&#39;re welcome to try using BCE with this tutorial, but I should not that we haven&#39;t updated BCE recently and the VirtualBox software on which BCE will run can be a pain.</p>
 
 <p>This tutorial assumes you have a working knowledge of either R, Python, Matlab, or C. </p>
 
@@ -281,10 +281,12 @@ overwrite places in memory that are used by other cores.</p>
 <h3>Threading</h3>
 
 <p>Threads are multiple paths of execution within a single process. If you are monitoring CPU
-usage (such as with <em>top</em> in BCE) and watching a job that is executing threaded code, you&#39;ll
+usage (such as with <em>top</em> in Linux or Mac) and watching a job that is executing threaded code, you&#39;ll
 see the process using more than 100% of CPU. When this occurs, the
 process is using multiple cores, although it appears as a single process
-rather than as multiple processes. </p>
+rather than as multiple processes.</p>
+
+<p>Note that this is a different notion than a processor that is hyperthreaded. With hyperthreading a single core appears as two cores to the operating system.</p>
 
 <h2>1.3) Distributed memory</h2>
 
@@ -294,7 +296,7 @@ this is MPI, of which there are various versions, including <em>openMPI</em>.</p
 
 <p>The R package <em>Rmpi</em> implements MPI in R. The <em>pbd</em> packages for R also implement MPI as well as distributed linear algebra (linear algebra calculations across nodes). In addition, there are various ways to do simple parallelization of multiple computational tasks (across multiple nodes) that use MPI and other tools on the back-end without users needing to understand them.</p>
 
-<p>Python has a package <em>mpi4py</em> that allows use of MPI within Python. And the iPython parallel tools allow one to do simple parallelization of multiple computational tasks across multiple nodes (as do other Python packages as well).</p>
+<p>Python has a package <em>mpi4py</em> that allows use of MPI within Python. And the IPython parallel tools allow one to do simple parallelization of multiple computational tasks across multiple nodes (as do other Python packages as well).</p>
 
 <p>Matlab has its own system for distributed computation, called the Distributed Computing Server (DCS), requiring additional licensing above the standard Matlab installation. </p>
 
@@ -310,14 +312,14 @@ this is MPI, of which there are various versions, including <em>openMPI</em>.</p
 for rendering graphics on a computer quickly. This is done by having
 a large number of simple processing units for massively parallel calculation.
 The idea of general purpose GPU (GPGPU) computing is to exploit this
-capability for general computation. </p>
+capability for general computation. In spring 2016, I gave a <a href="http://statistics.berkeley.edu/computing/gpu">workshop on using GPUs</a>.</p>
 
-<p>In spring 2016, I gave a <a href="http://statistics.berkeley.edu/computing/gpu">workshop on using GPUs</a>.</p>
+<p>Most researchers don&#39;t program for a GPU directly but rather use software (often machine learning software such as Tensorflow or Caffe) that has been programmed to take advantage of a GPU if one is available.</p>
 
 <h3>Spark and Hadoop</h3>
 
 <p>Spark and Hadoop are systems for implementing computations in a distributed
-memory environment, using the MapReduce approach. In fall 2014, I gave a <a href="http://statistics.berkeley.edu/computing/gpu">workshop on using Spark</a>.</p>
+memory environment, using the MapReduce approach. </p>
 
 <h1>2) Threading, particularly for linear algebra</h1>
 
@@ -353,7 +355,7 @@ VECLIB_MAXIMUM_THREADS rather than OMP_NUM_THREADS.)</p>
 <p>Here&#39;s some code that illustrates
 the speed of using a threaded BLAS:</p>
 
-<pre><code class="r"># install.packages(&#39;RhpcBLASctl&#39;) # not installed by default on BCE
+<pre><code class="r"># install.packages(&#39;RhpcBLASctl&#39;) 
 library(RhpcBLASctl)
 x &lt;- matrix(rnorm(5000^2), 5000)
 
@@ -518,25 +520,30 @@ parallel &ldquo;back-ends&#39;&#39;. For our purposes, the main one is use of th
 memory cores. When using <em>parallel</em> as the
 back-end, you should see multiple processes (as many as you registered;
 ideally each at 100%) when you  monitor CPU usage. The multiple processes
-are created by forking or using sockets. <em>foreach</em> can also use <em>Rmpi</em> to access cores in
-a distributed memory setting, but that is beyond the scope of this document.</p>
+are created by forking or using sockets. <em>foreach</em> can also use <em>Rmpi</em> or <em>SNOW</em> to access cores in
+a distributed memory setting; please see the tutorial on distributed parallel processing mentioned above.</p>
+
+<p>Here we&#39;ll parallelize leave-one-out cross-validation for a random forest model. An iteration involves holding out a data point, fitting the model with all the other data points, and then predicting the held-out point.</p>
 
 <pre><code class="r">library(doParallel)  # uses parallel package, a core R package
 </code></pre>
 
 <pre><code>## Loading required package: foreach
-## Loading required package: iterators
-## Loading required package: parallel
 </code></pre>
 
-<pre><code class="r"># library(multicore); library(doMC) # alternative to parallel/doParallel
-# library(Rmpi); library(doMPI) # to use Rmpi as the back-end
-
-source(&#39;rf.R&#39;)  # loads in data and looFit()
+<pre><code>## Loading required package: iterators
 </code></pre>
 
-<pre><code>## randomForest 4.6-10
-## Type rfNews() to see new features/changes/bug fixes.
+<pre><code>## Loading required package: parallel
+</code></pre>
+
+<pre><code class="r">source(&#39;rf.R&#39;)  # loads in data and looFit()
+</code></pre>
+
+<pre><code>## randomForest 4.6-12
+</code></pre>
+
+<pre><code>## Type rfNews() to see new features/changes/bug fixes.
 </code></pre>
 
 <pre><code class="r">looFit
@@ -554,8 +561,6 @@ source(&#39;rf.R&#39;)  # loads in data and looFit()
 
 <pre><code class="r">nCores &lt;- 4  # to set manually
 registerDoParallel(nCores) 
-# registerDoMC(nCores) # alternative to registerDoParallel
-# cl &lt;- startMPIcluster(nCores); registerDoMPI(cl) # when using Rmpi as the back-end
 
 nSub &lt;- 30  # do only first 30 for illustration
 
@@ -569,24 +574,24 @@ print(result[1:5])
 </code></pre>
 
 <pre><code>## [[1]]
-##       1 
-## 1.54527 
+##        1 
+## 1.357743 
 ## 
 ## [[2]]
-##         2 
-## 0.2242663 
+##        2 
+## 0.231844 
 ## 
 ## [[3]]
 ##         3 
-## 0.9681042 
+## 0.9526094 
 ## 
 ## [[4]]
 ##          4 
-## -0.3581378 
+## -0.3276957 
 ## 
 ## [[5]]
 ##          5 
-## -0.3549925
+## -0.2995256
 </code></pre>
 
 <p>(Note that the printed statements from <code>cat</code> are not showing up in the creation of this document but should show if you run the code.)</p>
@@ -617,8 +622,8 @@ and communicating via a technology called sockets.</p>
 nCores &lt;- 4  # to set manually 
 cl &lt;- makeCluster(nCores) 
 
-n &lt;- 60
-input &lt;- seq_len(n) # same as 1:n but more robust
+nSub &lt;- 30
+input &lt;- seq_len(nSub) # same as 1:nSub but more robust
 
 # clusterExport(cl, c(&#39;x&#39;, &#39;y&#39;)) # if the processes need objects
 # from master&#39;s workspace (not needed here as no global vars used)
@@ -631,7 +636,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   0.004   0.004  36.582
+##   0.004   0.000  19.040
 </code></pre>
 
 <pre><code class="r">system.time(
@@ -640,7 +645,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-## 114.652   0.004 114.663
+##  56.760   0.004  56.769
 </code></pre>
 
 <pre><code class="r">res &lt;- parLapply(cl, input, looFit, Y, X, TRUE)
@@ -658,7 +663,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-## 129.236   0.132  39.097
+##  61.068   0.048  16.049
 </code></pre>
 
 <p>Note that some R packages can directly interact with the parallelization
@@ -675,7 +680,7 @@ can make use of the <em>parallel</em> package directly. </p>
 
 <h2>3.2) Parallel looping in Python</h2>
 
-<p>I&#39;ll cover iPython parallel functionality, which allows one to parallelize on a single machine (discussed here) or across multiple machines (see the tutorial on distributed memory parallelization). There are a variety of other approaches one could use, of which I discuss two (the <em>pp</em> and <em>multiprocessing</em> packages) in the Appendix.</p>
+<p>I&#39;ll cover IPython parallel functionality, which allows one to parallelize on a single machine (discussed here) or across multiple machines (see the tutorial on distributed memory parallelization). There are a variety of other approaches one could use, of which I discuss two (the <em>pp</em> and <em>multiprocessing</em> packages) in the Appendix.</p>
 
 <p>First we need to start our worker engines.</p>
 
@@ -683,7 +688,7 @@ can make use of the <em>parallel</em> package directly. </p>
 sleep 45
 </code></pre>
 
-<p>Here we&#39;ll generate some fake data to fit a random forest model to and then use leave-one-out cross-validation to assess the model, parallelizing over the individual held-out observations.</p>
+<p>Here we&#39;ll do the same random forest cross-validation as before. </p>
 
 <pre><code class="python">import numpy as np
 np.random.seed(0)
@@ -936,7 +941,7 @@ that ensures sequences that do not overlap.</p>
 
 <h2>5.1) Ensuring separate sequences in R</h2>
 
-<p>In R, the  <em>rlecuyer</em> package deals with this (<em>rsprng</em> used to but it is no longer on CRAN).
+<p>In R, the  <em>rlecuyer</em> package deals with this.
 The L&#39;Ecuyer algorithm has a period of \(2^{191}\), which it divides
 into subsequences of length \(2^{127}\). </p>
 
@@ -1050,13 +1055,22 @@ called <em>doRNG</em> that ensures that <em>foreach</em> loops are reproducible.
 </code></pre>
 
 <pre><code>## Loading required package: rngtools
-## Loading required package: methods
-## Loading required package: pkgmaker
-## Loading required package: registry
-## 
+</code></pre>
+
+<pre><code>## Loading required package: methods
+</code></pre>
+
+<pre><code>## Loading required package: pkgmaker
+</code></pre>
+
+<pre><code>## Loading required package: registry
+</code></pre>
+
+<pre><code>## 
 ## Attaching package: &#39;pkgmaker&#39;
-## 
-## The following object is masked from &#39;package:base&#39;:
+</code></pre>
+
+<pre><code>## The following object is masked from &#39;package:base&#39;:
 ## 
 ##     isNamespaceLoaded
 </code></pre>
@@ -1129,20 +1143,24 @@ system.time({
 })
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 8 (&lt;-localhost:11980)
+<pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 9 (&lt;-
+## localhost:11993)
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 7 (&lt;-localhost:11980)
+<pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 8 (&lt;-
+## localhost:11993)
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 6 (&lt;-localhost:11980)
+<pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 7 (&lt;-
+## localhost:11993)
 </code></pre>
 
-<pre><code>## Warning: closing unused connection 5 (&lt;-localhost:11980)
+<pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 6 (&lt;-
+## localhost:11993)
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   1.064   0.036   1.768
+##   1.044   0.052   2.173
 </code></pre>
 
 <pre><code class="r">system.time({
@@ -1152,7 +1170,7 @@ system.time({
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   2.752   0.004   2.758
+##   3.112   0.008   3.122
 </code></pre>
 
 <p>Note that <em>mcparallel</em> also allows the use of the <em>mc.set.seed</em>
@@ -1173,32 +1191,28 @@ library(fields)
 </code></pre>
 
 <pre><code>## Loading required package: spam
-## Loading required package: grid
-## Spam version 1.2-1 (2015-09-30) is loaded.
+</code></pre>
+
+<pre><code>## Loading required package: grid
+</code></pre>
+
+<pre><code>## Spam version 1.4-0 (2016-08-29) is loaded.
 ## Type &#39;help( Spam)&#39; or &#39;demo( spam)&#39; for a short introduction 
 ## and overview of this package.
 ## Help for individual functions is also obtained by adding the
 ## suffix &#39;.spam&#39; to the function name, e.g. &#39;help( chol.spam)&#39;.
-## 
+</code></pre>
+
+<pre><code>## 
 ## Attaching package: &#39;spam&#39;
-## 
-## The following objects are masked from &#39;package:base&#39;:
+</code></pre>
+
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
 ## 
 ##     backsolve, forwardsolve
-## 
-## Loading required package: maps
-## 
-##  # ATTENTION: maps v3.0 has an updated &#39;world&#39; map.        #
-##  # Many country borders and names have changed since 1990. #
-##  # Type &#39;?world&#39; or &#39;news(package=&quot;maps&quot;)&#39;. See README_v3. #
-## 
-## 
-## 
-## Attaching package: &#39;fields&#39;
-## 
-## The following object is masked from &#39;package:maps&#39;:
-## 
-##     ozone
+</code></pre>
+
+<pre><code>## Loading required package: maps
 </code></pre>
 
 <pre><code class="r">ds &lt;- runif(6000000, .1, 10)
@@ -1210,7 +1224,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   1.944   0.240   1.419
+##   5.108   0.496   0.950
 </code></pre>
 
 <pre><code class="r">system.time(
@@ -1219,7 +1233,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   3.756   0.008   3.763
+##   3.416   0.104   3.519
 </code></pre>
 
 <h2>Manually parallelizing individual tasks in Matlab</h2>
@@ -1301,7 +1315,7 @@ delete(pool);
 
 <p>Here we create a server object and submit jobs to the server object,
 which manages the farming out of the tasks. Note that this will run
-interactively in iPython or as a script from UNIX, but will not run
+interactively in IPython or as a script from UNIX, but will not run
 interactively in the base Python interpreter (for reasons that are
 unclear to me). Also note that while we are illustrating this as basically
 another parallelized for loop, the individual jobs can be whatever
@@ -1364,7 +1378,9 @@ results = pool.map(taskFun, inputs)
 print(results)
 </code></pre>
 
-<pre><code>## [0.00030280243091597474, -8.5722825540149767e-05, 0.00013566614947237407, 0.00061310818505479474, -0.0004702706491795272, 0.00024515486966970537, -0.00017472300458822845, -0.00025050095623507584, -0.00033399772183492841, -0.00049137138871004158, 0.00029251318047107422, 1.1956375483643322e-05, -0.00010810414999124078, 0.00015533121727716678, -0.00092143784872822018, -7.4020047531168942e-05, -0.00027179897723462343, -0.00020500359099047446, 5.0102720605584639e-05, -0.00031948846032527046, -5.4961570167677311e-05, -0.00057477384497516828, 0.00035571929916218195, 0.0003172760600221845, -3.9757431343687736e-05, 0.00037903275195759294, -0.00010435497860874407, 0.0001701626336006962, -0.00069358450543517865, 0.00067886194920371693, -0.00051310981441539557, -3.0022955955111069e-05, -0.00063590672702952002, -0.00031966078315322541, -0.00015649509164027703, 0.00028376009875884391, 0.00018534703816611961, -0.00021821998172858934, 8.0842394421238762e-05, -0.00014637870897851111]
+<pre><code>## Traceback (most recent call last):
+##   File &quot;&lt;string&gt;&quot;, line 14, in &lt;module&gt;
+## NameError: name &#39;xrange&#39; is not defined
 </code></pre>
 
 <h2>More advanced use of <em>OpenMP</em> in C</h2>

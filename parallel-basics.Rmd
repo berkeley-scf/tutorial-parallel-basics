@@ -17,9 +17,10 @@ read_chunk('parallel-basics.m')
 
 This tutorial covers basic strategies for using parallel processing in R, Python, Matlab, and C on single machine in which multiple processors (cores) share memory. 
 
-In the future, a screencast of the material may accompany this document.
+You should be able to replicate much of what is covered here provided you have R, Python, or Matlab installed on your computer, but some of the parallelization approaches may not work on Windows.
 
-We'll use a virtual machine developed here at Berkeley, [the Berkeley Common Environment (BCE)](http://bce.berkeley.edu). BCE is a virtual Linux machine - basically it is a Linux computer that you can run within your own computer, regardless of whether you are using Windows, Mac, or Linux. This provides a common environment so that things behave the same for all of us. Assuming you have multiple cores on your physical machine, you can enable use of multiple cores within BCE by going to `Settings -> System -> Processor` and changing the number of processors to more than 1. (You may also want to increase the memory allocated to the VM.)  However, you may also be able to work through this material on your own computer provided you are able install the software used here. 
+This tutorial was developed using a virtual machine developed here at Berkeley, the [Berkeley Common Environment (BCE)](http://bce.berkeley.edu). BCE is a virtual Linux machine - basically it is a Linux computer that you can run within your own computer, regardless of whether you are using Windows, Mac, or Linux. This provides a common environment so that things behave the same for all of us. You're welcome to try using BCE with this tutorial, but I should not that we haven't updated BCE recently and the VirtualBox software on which BCE will run can be a pain.
+
 
 This tutorial assumes you have a working knowledge of either R, Python, Matlab, or C. 
 
@@ -79,10 +80,12 @@ We'll cover two types of  shared memory parallelism approaches:
 ### Threading
 
 Threads are multiple paths of execution within a single process. If you are monitoring CPU
-usage (such as with *top* in BCE) and watching a job that is executing threaded code, you'll
+usage (such as with *top* in Linux or Mac) and watching a job that is executing threaded code, you'll
 see the process using more than 100% of CPU. When this occurs, the
 process is using multiple cores, although it appears as a single process
-rather than as multiple processes. 
+rather than as multiple processes.
+
+Note that this is a different notion than a processor that is hyperthreaded. With hyperthreading a single core appears as two cores to the operating system.
 
 ## 1.3) Distributed memory
 
@@ -92,7 +95,7 @@ this is MPI, of which there are various versions, including *openMPI*.
 
 The R package *Rmpi* implements MPI in R. The *pbd* packages for R also implement MPI as well as distributed linear algebra (linear algebra calculations across nodes). In addition, there are various ways to do simple parallelization of multiple computational tasks (across multiple nodes) that use MPI and other tools on the back-end without users needing to understand them.
 
-Python has a package *mpi4py* that allows use of MPI within Python. And the iPython parallel tools allow one to do simple parallelization of multiple computational tasks across multiple nodes (as do other Python packages as well).
+Python has a package *mpi4py* that allows use of MPI within Python. And the IPython parallel tools allow one to do simple parallelization of multiple computational tasks across multiple nodes (as do other Python packages as well).
 
 Matlab has its own system for distributed computation, called the Distributed Computing Server (DCS), requiring additional licensing above the standard Matlab installation. 
 
@@ -108,14 +111,16 @@ GPUs (Graphics Processing Units) are processing units originally designed
 for rendering graphics on a computer quickly. This is done by having
 a large number of simple processing units for massively parallel calculation.
 The idea of general purpose GPU (GPGPU) computing is to exploit this
-capability for general computation. 
+capability for general computation. In spring 2016, I gave a [workshop on using GPUs](http://statistics.berkeley.edu/computing/gpu).
 
-In spring 2016, I gave a [workshop on using GPUs](http://statistics.berkeley.edu/computing/gpu).
+Most researchers don't program for a GPU directly but rather use software (often machine learning software such as Tensorflow or Caffe) that has been programmed to take advantage of a GPU if one is available.
+
+
 
 ### Spark and Hadoop
 
 Spark and Hadoop are systems for implementing computations in a distributed
-memory environment, using the MapReduce approach. In fall 2014, I gave a [workshop on using Spark](http://statistics.berkeley.edu/computing/gpu).
+memory environment, using the MapReduce approach. 
 
 # 2) Threading, particularly for linear algebra
 
@@ -298,8 +303,10 @@ parallel ``back-ends''. For our purposes, the main one is use of the *parallel* 
 memory cores. When using *parallel* as the
 back-end, you should see multiple processes (as many as you registered;
 ideally each at 100%) when you  monitor CPU usage. The multiple processes
-are created by forking or using sockets. *foreach* can also use *Rmpi* to access cores in
-a distributed memory setting, but that is beyond the scope of this document.
+are created by forking or using sockets. *foreach* can also use *Rmpi* or *SNOW* to access cores in
+a distributed memory setting; please see the tutorial on distributed parallel processing mentioned above.
+
+Here we'll parallelize leave-one-out cross-validation for a random forest model. An iteration involves holding out a data point, fitting the model with all the other data points, and then predicting the held-out point.
 
 ```{r, foreach}
 ```
@@ -354,7 +361,7 @@ In contrast, with parallel *apply* statements when starting the cluster using th
 
 ## 3.2) Parallel looping in Python
 
-I'll cover iPython parallel functionality, which allows one to parallelize on a single machine (discussed here) or across multiple machines (see the tutorial on distributed memory parallelization). There are a variety of other approaches one could use, of which I discuss two (the *pp* and *multiprocessing* packages) in the Appendix.
+I'll cover IPython parallel functionality, which allows one to parallelize on a single machine (discussed here) or across multiple machines (see the tutorial on distributed memory parallelization). There are a variety of other approaches one could use, of which I discuss two (the *pp* and *multiprocessing* packages) in the Appendix.
 
 First we need to start our worker engines.
 
@@ -363,7 +370,7 @@ ipcluster start -n 4 &
 sleep 45
 ```
 
-Here we'll generate some fake data to fit a random forest model to and then use leave-one-out cross-validation to assess the model, parallelizing over the individual held-out observations.
+Here we'll do the same random forest cross-validation as before. 
 
 ```{r, ipython-parallel, engine='python', eval=FALSE}
 ```
@@ -559,7 +566,7 @@ that ensures sequences that do not overlap.
 
 ## 5.1) Ensuring separate sequences in R
 
-In R, the  *rlecuyer* package deals with this (*rsprng* used to but it is no longer on CRAN).
+In R, the  *rlecuyer* package deals with this.
 The L'Ecuyer algorithm has a period of $2^{191}$, which it divides
 into subsequences of length $2^{127}$. 
 
@@ -716,7 +723,7 @@ function.
 
 Here we create a server object and submit jobs to the server object,
 which manages the farming out of the tasks. Note that this will run
-interactively in iPython or as a script from UNIX, but will not run
+interactively in IPython or as a script from UNIX, but will not run
 interactively in the base Python interpreter (for reasons that are
 unclear to me). Also note that while we are illustrating this as basically
 another parallelized for loop, the individual jobs can be whatever
