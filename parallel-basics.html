@@ -575,23 +575,23 @@ print(result[1:5])
 
 <pre><code>## [[1]]
 ##        1 
-## 1.357743 
+## 1.467141 
 ## 
 ## [[2]]
-##        2 
-## 0.231844 
+##         2 
+## 0.1887255 
 ## 
 ## [[3]]
-##         3 
-## 0.9526094 
+##        3 
+## 1.015125 
 ## 
 ## [[4]]
 ##          4 
-## -0.3276957 
+## -0.2824269 
 ## 
 ## [[5]]
 ##          5 
-## -0.2995256
+## -0.4057495
 </code></pre>
 
 <p>(Note that the printed statements from <code>cat</code> are not showing up in the creation of this document but should show if you run the code.)</p>
@@ -636,7 +636,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   0.004   0.000  19.040
+##   0.004   0.000  16.735
 </code></pre>
 
 <pre><code class="r">system.time(
@@ -645,7 +645,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##  56.760   0.004  56.769
+##  56.560   0.000  56.568
 </code></pre>
 
 <pre><code class="r">res &lt;- parLapply(cl, input, looFit, Y, X, TRUE)
@@ -663,7 +663,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##  61.068   0.048  16.049
+##  60.040   0.080  16.404
 </code></pre>
 
 <p>Note that some R packages can directly interact with the parallelization
@@ -898,8 +898,7 @@ want to preschedule the tasks to reduce communication. If you have few tasks
 or tasks with highly variable completion times, you don&#39;t want to
 preschedule, to improve load-balancing.</li>
 <li>For R in particular, some of R&#39;s parallel functions allow you to say whether the 
-tasks should be prescheduled. E.g., the <em>mc.preschedule</em> argument in <em>mclapply</em> and
-the <em>.scheduling</em> argument in <em>parLapply</em>.</li>
+tasks should be prescheduled. E.g., the <em>mc.preschedule</em> argument in <em>mclapply</em> and (in principle) the <em>parLapplyLB</em> function in place of <em>parLapply</em>. However, there appears to be a bug in <em>parLapplyLB</em> such that it doesn&#39;t actually act in a load-balanced way.</li>
 </ul>
 
 <h1>5) Random number generation (RNG) in parallel</h1>
@@ -1144,23 +1143,23 @@ system.time({
 </code></pre>
 
 <pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 9 (&lt;-
-## localhost:11993)
+## localhost:11169)
 </code></pre>
 
 <pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 8 (&lt;-
-## localhost:11993)
+## localhost:11169)
 </code></pre>
 
 <pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 7 (&lt;-
-## localhost:11993)
+## localhost:11169)
 </code></pre>
 
 <pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 6 (&lt;-
-## localhost:11993)
+## localhost:11169)
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   1.044   0.052   2.173
+##   1.052   0.072   2.215
 </code></pre>
 
 <pre><code class="r">system.time({
@@ -1170,7 +1169,7 @@ system.time({
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   3.112   0.008   3.122
+##   3.156   0.092   3.247
 </code></pre>
 
 <p>Note that <em>mcparallel</em> also allows the use of the <em>mc.set.seed</em>
@@ -1224,7 +1223,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   5.108   0.496   0.950
+##   3.696   0.392   0.942
 </code></pre>
 
 <pre><code class="r">system.time(
@@ -1233,7 +1232,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   3.416   0.104   3.519
+##   3.408   0.124   3.534
 </code></pre>
 
 <h2>Manually parallelizing individual tasks in Matlab</h2>

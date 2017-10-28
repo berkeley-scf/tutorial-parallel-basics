@@ -523,8 +523,7 @@ want to preschedule the tasks to reduce communication. If you have few tasks
 or tasks with highly variable completion times, you don't want to
 preschedule, to improve load-balancing.
  - For R in particular, some of R's parallel functions allow you to say whether the 
-tasks should be prescheduled. E.g., the *mc.preschedule* argument in *mclapply* and
-the *.scheduling* argument in *parLapply*.
+tasks should be prescheduled. E.g., the *mc.preschedule* argument in *mclapply* and (in principle) the *parLapplyLB* function in place of *parLapply*. However, there appears to be a bug in *parLapplyLB* such that it doesn't actually act in a load-balanced way.
 
 # 5) Random number generation (RNG) in parallel 
 
