@@ -324,6 +324,8 @@ You can debug by running serially using *%do%* rather than
 *foreach* construct to ensure a package is available to all of
 the calculations.
 
+It is possible to use foreach to parallelize over nested loops. Suppose that the outer loop has too few tasks to effectively parallelize over and you also want to parallelize over the inner loop as well. Provided the calculations in each task (defined based on the pair of indexes from both loops) are independent of the other tasks, you can define two foreach loops, with the outer foreach using the `%:%` operator and the inner foreach using the usual `%dopar%` operator. More details can be found [in this vignette](https://cran.r-project.org/web/packages/foreach/vignettes/nested.pdf). 
+
 
 ### 3.1.2) Parallel apply functionality
 

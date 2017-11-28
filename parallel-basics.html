@@ -575,23 +575,23 @@ print(result[1:5])
 
 <pre><code>## [[1]]
 ##        1 
-## 1.467141 
+## 1.555095 
 ## 
 ## [[2]]
 ##         2 
-## 0.1887255 
+## 0.2239739 
 ## 
 ## [[3]]
 ##        3 
-## 1.015125 
+## 1.005844 
 ## 
 ## [[4]]
 ##          4 
-## -0.2824269 
+## -0.4771958 
 ## 
 ## [[5]]
-##          5 
-## -0.4057495
+##         5 
+## -0.225944
 </code></pre>
 
 <p>(Note that the printed statements from <code>cat</code> are not showing up in the creation of this document but should show if you run the code.)</p>
@@ -607,6 +607,8 @@ we request the results be combined in different way, as we do here using <code>.
 <em>%dopar%</em>. Note that you may need to load packages within the
 <em>foreach</em> construct to ensure a package is available to all of
 the calculations.</p>
+
+<p>It is possible to use foreach to parallelize over nested loops. Suppose that the outer loop has too few tasks to effectively parallelize over and you also want to parallelize over the inner loop as well. Provided the calculations in each task (defined based on the pair of indexes from both loops) are independent of the other tasks, you can define two foreach loops, with the outer foreach using the <code>%:%</code> operator and the inner foreach using the usual <code>%dopar%</code> operator. More details can be found <a href="https://cran.r-project.org/web/packages/foreach/vignettes/nested.pdf">in this vignette</a>. </p>
 
 <h3>3.1.2) Parallel apply functionality</h3>
 
@@ -636,7 +638,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   0.004   0.000  16.735
+##   0.004   0.000  16.476
 </code></pre>
 
 <pre><code class="r">system.time(
@@ -645,7 +647,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##  56.560   0.000  56.568
+##  56.564   0.036  56.617
 </code></pre>
 
 <pre><code class="r">res &lt;- parLapply(cl, input, looFit, Y, X, TRUE)
@@ -663,7 +665,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##  60.040   0.080  16.404
+##  60.968   0.064  16.538
 </code></pre>
 
 <p>Note that some R packages can directly interact with the parallelization
@@ -1143,23 +1145,23 @@ system.time({
 </code></pre>
 
 <pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 9 (&lt;-
-## localhost:11169)
+## localhost:11156)
 </code></pre>
 
 <pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 8 (&lt;-
-## localhost:11169)
+## localhost:11156)
 </code></pre>
 
 <pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 7 (&lt;-
-## localhost:11169)
+## localhost:11156)
 </code></pre>
 
 <pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 6 (&lt;-
-## localhost:11169)
+## localhost:11156)
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   1.052   0.072   2.215
+##   1.068   0.072   2.303
 </code></pre>
 
 <pre><code class="r">system.time({
@@ -1169,7 +1171,7 @@ system.time({
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   3.156   0.092   3.247
+##   3.216   0.036   3.253
 </code></pre>
 
 <p>Note that <em>mcparallel</em> also allows the use of the <em>mc.set.seed</em>
@@ -1223,7 +1225,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   3.696   0.392   0.942
+##   5.076   0.428   1.008
 </code></pre>
 
 <pre><code class="r">system.time(
@@ -1232,7 +1234,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   3.408   0.124   3.534
+##   3.440   0.152   3.594
 </code></pre>
 
 <h2>Manually parallelizing individual tasks in Matlab</h2>
