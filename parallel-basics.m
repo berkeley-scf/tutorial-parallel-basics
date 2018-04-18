@@ -1,6 +1,6 @@
 ## @knitr matlab-parfor
 
-nslots = 4; # to set manually
+nslots = 4; % to set manually
 mypool = parpool(nslots) 
 % parpool open local nslots # alternative
 
