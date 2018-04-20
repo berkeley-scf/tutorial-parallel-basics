@@ -298,7 +298,7 @@ this is MPI, of which there are various versions, including <em>openMPI</em>.</p
 
 <p>Python has a package <em>mpi4py</em> that allows use of MPI within Python. And the IPython parallel tools allow one to do simple parallelization of multiple computational tasks across multiple nodes (as do other Python packages as well).</p>
 
-<p>Matlab has its own system for distributed computation, called the Distributed Computing Server (DCS), requiring additional licensing above the standard Matlab installation. </p>
+<p>MATLAB has its own system for distributed computation, called the Distributed Computing Server (DCS), requiring additional licensing above the standard MATLAB installation. </p>
 
 <p>This tutorial will not cover distributed memory parallelization; please see our <a href="https://github.com/berkeley-scf/tutorial-parallel-distributed">tutorial on parallel processing in a distributed context</a>.</p>
 
@@ -397,15 +397,15 @@ x = x.T.dot(x)
 U = np.linalg.cholesky(x)
 </code></pre>
 
-<h3>2.2.3) Matlab</h3>
+<h3>2.2.3) MATLAB</h3>
 
-<p>Many Matlab functions are automatically threaded (not just linear
+<p>Many MATLAB functions are automatically threaded (not just linear
 algebra), so you don&#39;t need to do anything special in your code to
 take advantage of this. 
-So if you&#39;re running Matlab and monitoring CPU usage (e.g., using
+So if you&#39;re running MATLAB and monitoring CPU usage (e.g., using
 <em>top</em> on Linux or OS X), you may see a process using more than 100% of CPU. However
 worker tasks within a <em>parfor</em> (see Section 3) use only a single thread. 
-Matlab uses MKL for linear algebra. </p>
+MATLAB uses MKL for linear algebra. </p>
 
 <h2>2.3) Fixing the number of threads (cores used)</h2>
 
@@ -429,16 +429,16 @@ threads in bash:</p>
 
 <p><code>OMP_NUM_THREADS=4 R CMD BATCH --no-save job.R job.out</code></p>
 
-<h3>2.3.2) Matlab</h3>
+<h3>2.3.2) MATLAB</h3>
 
-<p>Matlab is an exception. Threading in Matlab can be controlled
-in two ways. From within your Matlab code you can set the number of
+<p>MATLAB is an exception. Threading in MATLAB can be controlled
+in two ways. From within your MATLAB code you can set the number of
 threads, e.g., to four in this case:</p>
 
 <p><code>feature(&#39;numThreads&#39;, 4)</code></p>
 
 <p>To use only a single thread, you can use 1 instead of 4 above, or
-you can start Matlab with the <em>singleCompThread</em> flag:</p>
+you can start MATLAB with the <em>singleCompThread</em> flag:</p>
 
 <p><code>matlab -singleCompThread ...</code></p>
 
@@ -575,23 +575,23 @@ print(result[1:5])
 
 <pre><code>## [[1]]
 ##        1 
-## 1.555095 
+## 1.524218 
 ## 
 ## [[2]]
 ##         2 
-## 0.2239739 
+## 0.2154531 
 ## 
 ## [[3]]
 ##        3 
-## 1.005844 
+## 1.056725 
 ## 
 ## [[4]]
 ##          4 
-## -0.4771958 
+## -0.2916539 
 ## 
 ## [[5]]
-##         5 
-## -0.225944
+##          5 
+## -0.2747813
 </code></pre>
 
 <p>(Note that the printed statements from <code>cat</code> are not showing up in the creation of this document but should show if you run the code.)</p>
@@ -638,7 +638,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   0.004   0.000  16.476
+##   0.008   0.004  23.350
 </code></pre>
 
 <pre><code class="r">system.time(
@@ -647,7 +647,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##  56.564   0.036  56.617
+##  84.296   0.036  84.321
 </code></pre>
 
 <pre><code class="r">res &lt;- parLapply(cl, input, looFit, Y, X, TRUE)
@@ -665,7 +665,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##  60.968   0.064  16.538
+##  84.060   0.160  22.516
 </code></pre>
 
 <p>Note that some R packages can directly interact with the parallelization
@@ -698,42 +698,32 @@ n = 500
 p = 50
 X = np.random.normal(0, 1, size = (n, p))
 Y = X[: , 0] + pow(abs(X[:,1] * X[:,2]), 0.5) + X[:,1] - X[:,2] + np.random.normal(0, 1, n)
-
 def looFit(index, Ylocal, Xlocal):
     rf = rfr(n_estimators=100)
     fitted = rf.fit(np.delete(Xlocal, index, axis = 0), np.delete(Ylocal, index))
     pred = rf.predict(np.array([Xlocal[index, :]]))
     return(pred[0])
-
 from ipyparallel import Client
 c = Client()
 c.ids
-
 dview = c[:]
 dview.block = True
 dview.apply(lambda : &quot;Hello, World&quot;)
-
 lview = c.load_balanced_view()
 lview.block = True
-
 dview.execute(&#39;from sklearn.ensemble import RandomForestRegressor as rfr&#39;)
 dview.execute(&#39;import numpy as np&#39;)
 mydict = dict(X = X, Y = Y, looFit = looFit)
 dview.push(mydict)
-
 nSub = 50  # for illustration only do a subset
-
 # need a wrapper function because map() only operates on one argument
 def wrapper(i):
     return(looFit(i, Y, X))
-
 import time
 time.time()
 pred = lview.map(wrapper, range(nSub))
 time.time()
-
 print(pred[0:10])
-
 # import pylab
 # import matplotlib.pyplot as plt
 # plt.plot(Y, pred, &#39;.&#39;)
@@ -745,15 +735,15 @@ print(pred[0:10])
 <pre><code class="bash">ipcluster stop
 </code></pre>
 
-<h2>3.3) Basic shared memory parallel programming in Matlab</h2>
+<h2>3.3) Basic shared memory parallel programming in MATLAB</h2>
 
-<p>To run a loop in parallel in Matlab, you can use the <em>parfor</em>
+<p>To run a loop in parallel in MATLAB, you can use the <em>parfor</em>
 construction.  Before running the parfor you
-need to start up a set of workers using <em>parpool</em>. Matlab will use only  one thread
+need to start up a set of workers using <em>parpool</em>. MATLAB will use only  one thread
 per worker. 
 Here is some demo code:</p>
 
-<pre><code class="bash">nslots = 4; # to set manually
+<pre><code class="bash">nslots = 4; % to set manually
 mypool = parpool(nslots) 
 % parpool open local nslots # alternative
 
@@ -769,11 +759,18 @@ delete(mypool)
 % delete(gcp) works if you forget to name your pool by assigning the output of parpool to a variable
 </code></pre>
 
-<p>Matlab has a default limit on the number of workers in a pool, but you can modify your Matlab settings  as follows to increase that limit (in this case to allow up to 32 workers). It should work to run the following code once in a Matlab session, which will modify the settings for future Matlab sessions.</p>
+<p>MATLAB has a default limit on the number of workers in a pool, but you can modify your MATLAB settings  as follows to increase that limit (in this case to allow up to 32 workers). It should work to run the following code once in a MATLAB session, which will modify the settings for future MATLAB sessions.</p>
 
 <pre><code>cl = parcluster(&#39;local&#39;);
 cl.NumWorkers = 32;
 saveProfile(cl);
+</code></pre>
+
+<p>By default MATLAB uses a single thread (core) per worker. However you can also use multiple threads. Here is how you can set that up.</p>
+
+<pre><code>cl = parcluster(&#39;local&#39;);
+cl.NumThreads = 2;  % 2 threads per worker
+cl.parpool(4);      % 4 workers
 </code></pre>
 
 <h2>3.4) Using <em>OpenMP</em> threads for basic shared memory programming in C</h2>
@@ -930,7 +927,7 @@ such as an MCMC, this probably won&#39;t cause big problems (though you
 likely wouldn&#39;t know if it did), but for something like simple simulation
 studies, some of your &#39;independent&#39; samples could be exact replicates
 of a sample on another process. Given the period length of the default
-generators in R, Matlab and Python, this is actually quite unlikely,
+generators in R, MATLAB and Python, this is actually quite unlikely,
 but it is a bit sloppy.</p>
 
 <p>One approach to avoid the problem is to do all your RNG on one process
@@ -1099,15 +1096,15 @@ identical(result,result2)
 <p>Python uses the Mersenne-Twister generator. If you&#39;re using the RNG
 in <em>numpy/scipy</em>, you can set the seed using <code>numpy.random.seed</code> or <code>scipy.random.seed</code>.
 The advice I&#39;m seeing online in various Python forums is to just set
-separate seeds, so it appears the Python is a bit behind R and Matlab here.
+separate seeds, so it appears the Python is a bit behind R and MATLAB here.
  There is a function <em>random.jumpahead</em> that
 allows you to move the seed ahead as if a given number of random numbers
 had been generated, but this function will not be in Python 3.x, so
 I won&#39;t suggest using it. </p>
 
-<h2>5.3) RNG in Matlab</h2>
+<h2>5.3) RNG in MATLAB</h2>
 
-<p>Matlab also uses the Mersenne-Twister. We can set the seed as: <code>rng(seed)</code>,
+<p>MATLAB also uses the Mersenne-Twister. We can set the seed as: <code>rng(seed)</code>,
 with seed being a non-negative integer. </p>
 
 <p>Happily, like R, we can set up independent streams, using either of
@@ -1126,7 +1123,7 @@ RandStream.setGlobalStream(cmrg1);
 randn(5, 1)
 </code></pre>
 
-<h1>Appendix: Other shared memory parallelization functionality in R and Matlab</h1>
+<h1>Appendix: Other shared memory parallelization functionality in R and MATLAB</h1>
 
 <h2>Other parallel functionality in R</h2>
 
@@ -1144,24 +1141,8 @@ system.time({
 })
 </code></pre>
 
-<pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 9 (&lt;-
-## localhost:11156)
-</code></pre>
-
-<pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 8 (&lt;-
-## localhost:11156)
-</code></pre>
-
-<pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 7 (&lt;-
-## localhost:11156)
-</code></pre>
-
-<pre><code>## Warning in .Internal(gc(verbose, reset)): closing unused connection 6 (&lt;-
-## localhost:11156)
-</code></pre>
-
 <pre><code>##    user  system elapsed 
-##   1.068   0.072   2.303
+##    1.60    0.12    3.61
 </code></pre>
 
 <pre><code class="r">system.time({
@@ -1171,7 +1152,7 @@ system.time({
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   3.216   0.036   3.253
+##   4.756   0.228   4.985
 </code></pre>
 
 <p>Note that <em>mcparallel</em> also allows the use of the <em>mc.set.seed</em>
@@ -1225,7 +1206,7 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   5.076   0.428   1.008
+##   5.028   0.948   1.335
 </code></pre>
 
 <pre><code class="r">system.time(
@@ -1234,17 +1215,17 @@ system.time(
 </code></pre>
 
 <pre><code>##    user  system elapsed 
-##   3.440   0.152   3.594
+##   5.128   0.104   5.236
 </code></pre>
 
-<h2>Manually parallelizing individual tasks in Matlab</h2>
+<h2>Manually parallelizing individual tasks in MATLAB</h2>
 
-<p>In addition to using <em>parfor</em> in Matlab, you can also explicitly program parallelization, managing the individual
+<p>In addition to using <em>parfor</em> in MATLAB, you can also explicitly program parallelization, managing the individual
 parallelized tasks. Here is some template code for doing this. We&#39;ll
 submit our jobs to a pool of workers so that we have control over
 how many jobs are running at once. Note that here I submit 6 jobs
 that call the same function, but the different jobs could call different
-functions and have varying inputs and outputs. Matlab will run as
+functions and have varying inputs and outputs. MATLAB will run as
 many jobs as available workers in the pool and will queue the remainder,
 starting them as workers in the pool become available. Here is
 some demo code</p>
@@ -1325,19 +1306,16 @@ job to job.</p>
 
 <pre><code class="python">import numpy
 import pp
-
 nCores = 4
 job_server = pp.Server(ncpus = nCores, secret = &#39;mysecretphrase&#39;)
 # set &#39;secret&#39; to some passphrase (you need to set it but 
 #   what it is should not be crucial)
 job_server.get_ncpus()
-
 nSmp = 10000000
 m = 40
 def taskFun(i, n):
     numpy.random.seed(i)
     return (i, numpy.mean(numpy.random.normal(0, 1, n)))
-
 # create list of tuples to iterate over
 inputs = [(i, nSmp) for i in xrange(m)]
 # submit and run jobs using list comprehension
@@ -1361,27 +1339,49 @@ and pass each tuple as the argument. </p>
 
 <pre><code class="python">import multiprocessing as mp
 import numpy as np
-
 nCores = 4 # to set manually
-
 nSmp = 10000000
 m = 40
 def taskFun(input):
     np.random.seed(input[0])
     return np.mean(np.random.normal(0, 1, input[1]))
-
 # create list of tuples to iterate over, since
 # Pool.map() does not support multiple arguments
 inputs = [(i, nSmp) for i in xrange(m)]
-inputs[0:2]
-pool = mp.Pool(processes = nCores)
-results = pool.map(taskFun, inputs)
-print(results)
 </code></pre>
 
-<pre><code>## Traceback (most recent call last):
-##   File &quot;&lt;string&gt;&quot;, line 14, in &lt;module&gt;
-## NameError: name &#39;xrange&#39; is not defined
+<pre><code>## NameError: name &#39;xrange&#39; is not defined
+## 
+## Detailed traceback: 
+##   File &quot;&lt;string&gt;&quot;, line 1, in &lt;module&gt;
+</code></pre>
+
+<pre><code class="python">inputs[0:2]
+</code></pre>
+
+<pre><code>## NameError: name &#39;inputs&#39; is not defined
+## 
+## Detailed traceback: 
+##   File &quot;&lt;string&gt;&quot;, line 1, in &lt;module&gt;
+</code></pre>
+
+<pre><code class="python">pool = mp.Pool(processes = nCores)
+results = pool.map(taskFun, inputs)
+</code></pre>
+
+<pre><code>## NameError: name &#39;inputs&#39; is not defined
+## 
+## Detailed traceback: 
+##   File &quot;&lt;string&gt;&quot;, line 1, in &lt;module&gt;
+</code></pre>
+
+<pre><code class="python">print(results)
+</code></pre>
+
+<pre><code>## NameError: name &#39;results&#39; is not defined
+## 
+## Detailed traceback: 
+##   File &quot;&lt;string&gt;&quot;, line 1, in &lt;module&gt;
 </code></pre>
 
 <h2>More advanced use of <em>OpenMP</em> in C</h2>

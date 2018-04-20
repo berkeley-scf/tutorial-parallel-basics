@@ -19,7 +19,7 @@ This tutorial covers basic strategies for using parallel processing in R, Python
 
 You should be able to replicate much of what is covered here provided you have R, Python, or Matlab installed on your computer, but some of the parallelization approaches may not work on Windows.
 
-This tutorial was developed using a virtual machine developed here at Berkeley, the [Berkeley Common Environment (BCE)](http://bce.berkeley.edu). BCE is a virtual Linux machine - basically it is a Linux computer that you can run within your own computer, regardless of whether you are using Windows, Mac, or Linux. This provides a common environment so that things behave the same for all of us. You're welcome to try using BCE with this tutorial, but I should not that we haven't updated BCE recently and the VirtualBox software on which BCE will run can be a pain.
+This tutorial was developed using a virtual machine developed here at Berkeley, the [Berkeley Common Environment (BCE)](http://bce.berkeley.edu). BCE is a virtual Linux machine - basically it is a Linux computer that you can run within your own computer, regardless of whether you are using Windows, Mac, or Linux. This provides a common environment so that things behave the same for all of us. You're welcome to try using BCE with this tutorial, but I should note that we haven't updated BCE recently and the VirtualBox software on which BCE will run can be a pain.
 
 
 This tutorial assumes you have a working knowledge of either R, Python, Matlab, or C. 
@@ -97,7 +97,7 @@ The R package *Rmpi* implements MPI in R. The *pbd* packages for R also implemen
 
 Python has a package *mpi4py* that allows use of MPI within Python. And the IPython parallel tools allow one to do simple parallelization of multiple computational tasks across multiple nodes (as do other Python packages as well).
 
-Matlab has its own system for distributed computation, called the Distributed Computing Server (DCS), requiring additional licensing above the standard Matlab installation. 
+MATLAB has its own system for distributed computation, called the Distributed Computing Server (DCS), requiring additional licensing above the standard MATLAB installation. 
 
 This tutorial will not cover distributed memory parallelization; please see our [tutorial on parallel processing in a distributed context](https://github.com/berkeley-scf/tutorial-parallel-distributed).
 
@@ -173,15 +173,15 @@ Here's some linear algebra in  Python that will use threading if *numpy* is link
 ```{r, py-linalg, engine='python', eval=FALSE}
 ```
 
-### 2.2.3) Matlab
+### 2.2.3) MATLAB
 
-Many Matlab functions are automatically threaded (not just linear
+Many MATLAB functions are automatically threaded (not just linear
 algebra), so you don't need to do anything special in your code to
 take advantage of this. 
-So if you're running Matlab and monitoring CPU usage (e.g., using
+So if you're running MATLAB and monitoring CPU usage (e.g., using
 *top* on Linux or OS X), you may see a process using more than 100% of CPU. However
 worker tasks within a *parfor* (see Section 3) use only a single thread. 
-Matlab uses MKL for linear algebra. 
+MATLAB uses MKL for linear algebra. 
 
 ## 2.3) Fixing the number of threads (cores used)
 
@@ -206,16 +206,16 @@ Alternatively, you can set OMP_NUM_THREADS as you invoke your job, e.g., here wi
 ```OMP_NUM_THREADS=4 R CMD BATCH --no-save job.R job.out```
 
 
-### 2.3.2) Matlab
+### 2.3.2) MATLAB
 
-Matlab is an exception. Threading in Matlab can be controlled
-in two ways. From within your Matlab code you can set the number of
+MATLAB is an exception. Threading in MATLAB can be controlled
+in two ways. From within your MATLAB code you can set the number of
 threads, e.g., to four in this case:
 
 ```feature('numThreads', 4)```
 
 To use only a single thread, you can use 1 instead of 4 above, or
-you can start Matlab with the *singleCompThread* flag:
+you can start MATLAB with the *singleCompThread* flag:
 
 ```matlab -singleCompThread ...```
 
@@ -384,25 +384,34 @@ ipcluster stop
 ```
 
 
-## 3.3) Basic shared memory parallel programming in Matlab
+## 3.3) Basic shared memory parallel programming in MATLAB
 
 
-To run a loop in parallel in Matlab, you can use the *parfor*
+To run a loop in parallel in MATLAB, you can use the *parfor*
 construction.  Before running the parfor you
-need to start up a set of workers using *parpool*. Matlab will use only  one thread
+need to start up a set of workers using *parpool*. MATLAB will use only  one thread
 per worker. 
 Here is some demo code:
 
 ```{r, matlab-parfor, engine='bash', eval=FALSE}
 ```
 
-Matlab has a default limit on the number of workers in a pool, but you can modify your Matlab settings  as follows to increase that limit (in this case to allow up to 32 workers). It should work to run the following code once in a Matlab session, which will modify the settings for future Matlab sessions.
+MATLAB has a default limit on the number of workers in a pool, but you can modify your MATLAB settings  as follows to increase that limit (in this case to allow up to 32 workers). It should work to run the following code once in a MATLAB session, which will modify the settings for future MATLAB sessions.
 
 ```
 cl = parcluster('local');
 cl.NumWorkers = 32;
 saveProfile(cl);
 ```
+
+By default MATLAB uses a single thread (core) per worker. However you can also use multiple threads. Here is how you can set that up.
+
+```
+cl = parcluster('local');
+cl.NumThreads = 2;  % 2 threads per worker
+cl.parpool(4);      % 4 workers
+```
+
 
 ## 3.4) Using *OpenMP* threads for basic shared memory programming in C
 
@@ -554,7 +563,7 @@ such as an MCMC, this probably won't cause big problems (though you
 likely wouldn't know if it did), but for something like simple simulation
 studies, some of your 'independent' samples could be exact replicates
 of a sample on another process. Given the period length of the default
-generators in R, Matlab and Python, this is actually quite unlikely,
+generators in R, MATLAB and Python, this is actually quite unlikely,
 but it is a bit sloppy.
 
 One approach to avoid the problem is to do all your RNG on one process
@@ -637,16 +646,16 @@ You can ignore the warnings about closing unused connections printed out above.
 Python uses the Mersenne-Twister generator. If you're using the RNG
 in *numpy/scipy*, you can set the seed using `numpy.random.seed` or `scipy.random.seed`.
 The advice I'm seeing online in various Python forums is to just set
-separate seeds, so it appears the Python is a bit behind R and Matlab here.
+separate seeds, so it appears the Python is a bit behind R and MATLAB here.
  There is a function *random.jumpahead* that
 allows you to move the seed ahead as if a given number of random numbers
 had been generated, but this function will not be in Python 3.x, so
 I won't suggest using it. 
 
 
-## 5.3) RNG in Matlab
+## 5.3) RNG in MATLAB
 
-Matlab also uses the Mersenne-Twister. We can set the seed as: `rng(seed)`,
+MATLAB also uses the Mersenne-Twister. We can set the seed as: `rng(seed)`,
 with seed being a non-negative integer. 
 
 Happily, like R, we can set up independent streams, using either of
@@ -669,7 +678,7 @@ randn(5, 1)
 
 
 
-# Appendix: Other shared memory parallelization functionality in R and Matlab
+# Appendix: Other shared memory parallelization functionality in R and MATLAB
 
 ## Other parallel functionality in R
 
@@ -695,14 +704,14 @@ than *exp*).
 ```{r, pvec, eval=TRUE}
 ```
 
-## Manually parallelizing individual tasks in Matlab
+## Manually parallelizing individual tasks in MATLAB
 
-In addition to using *parfor* in Matlab, you can also explicitly program parallelization, managing the individual
+In addition to using *parfor* in MATLAB, you can also explicitly program parallelization, managing the individual
 parallelized tasks. Here is some template code for doing this. We'll
 submit our jobs to a pool of workers so that we have control over
 how many jobs are running at once. Note that here I submit 6 jobs
 that call the same function, but the different jobs could call different
-functions and have varying inputs and outputs. Matlab will run as
+functions and have varying inputs and outputs. MATLAB will run as
 many jobs as available workers in the pool and will queue the remainder,
 starting them as workers in the pool become available. Here is
 some demo code
